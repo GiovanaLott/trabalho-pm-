@@ -1,9 +1,22 @@
 package com.hospital.entidades;
 
 import jakarta.persistence.*;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Objects;
 
+/**
+ * Representa a entidade e modelo de domínio de uma Consulta médica.
+ * Em conformidade com os requisitos mínimos:
+ * - Paciente
+ * - Profissional responsável
+ * - Data e Horário
+ * - Motivo da consulta
+ * - Observações médicas
+ *
+ * @author Guilherme Oliveira
+ */
 @Entity
 @Table(name = "consultas")
 public class Consulta {
@@ -33,9 +46,15 @@ public class Consulta {
     @Column(nullable = false, length = 20)
     private StatusConsulta status = StatusConsulta.AGENDADA;
 
+    /**
+     * Construtor padrão (obrigatório para JPA).
+     */
     public Consulta() {
     }
 
+    /**
+     * Construtor completo com ID.
+     */
     public Consulta(Long id, Paciente paciente, ProfissionalSaude profissional, LocalDateTime dataHora, String motivoConsulta, String observacoesMedicas, StatusConsulta status) {
         this.id = id;
         this.paciente = paciente;
@@ -45,6 +64,62 @@ public class Consulta {
         this.observacoesMedicas = observacoesMedicas;
         this.status = status != null ? status : StatusConsulta.AGENDADA;
     }
+
+    /**
+     * Construtor sem ID para agendamento de nova consulta.
+     */
+    public Consulta(Paciente paciente, ProfissionalSaude profissional, LocalDateTime dataHora, String motivoConsulta) {
+        this(null, paciente, profissional, dataHora, motivoConsulta, null, StatusConsulta.AGENDADA);
+    }
+
+    // --- Métodos de Domínio (Java puro / POO / Regras de Negócio) ---
+
+    /**
+     * Cancela a consulta agendada.
+     */
+    public void cancelar() {
+        this.status = StatusConsulta.CANCELADA;
+    }
+
+    /**
+     * Finaliza a consulta médica, registrando as observações clínicas.
+     *
+     * @param observacoes Parecer médico e orientações registradas no atendimento.
+     */
+    public void finalizar(String observacoes) {
+        this.status = StatusConsulta.REALIZADA;
+        if (observacoes != null && !observacoes.trim().isEmpty()) {
+            this.observacoesMedicas = observacoes;
+        }
+    }
+
+    /**
+     * Retorna apenas a data da consulta.
+     */
+    public LocalDate getData() {
+        return this.dataHora != null ? this.dataHora.toLocalDate() : null;
+    }
+
+    /**
+     * Retorna apenas o horário da consulta.
+     */
+    public LocalTime getHorario() {
+        return this.dataHora != null ? this.dataHora.toLocalTime() : null;
+    }
+
+    public boolean isAgendada() {
+        return StatusConsulta.AGENDADA.equals(this.status);
+    }
+
+    public boolean isRealizada() {
+        return StatusConsulta.REALIZADA.equals(this.status);
+    }
+
+    public boolean isCancelada() {
+        return StatusConsulta.CANCELADA.equals(this.status);
+    }
+
+    // --- Getters e Setters ---
 
     public Long getId() {
         return id;
@@ -113,5 +188,17 @@ public class Consulta {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Consulta{" +
+                "id=" + id +
+                ", paciente=" + (paciente != null ? paciente.getNome() : null) +
+                ", profissional=" + (profissional != null ? profissional.getNome() : null) +
+                ", dataHora=" + dataHora +
+                ", motivoConsulta='" + motivoConsulta + '\'' +
+                ", status=" + status +
+                '}';
     }
 }
