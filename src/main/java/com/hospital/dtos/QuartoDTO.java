@@ -6,6 +6,11 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
+/**
+ * DTO para transferência de dados de Quarto hospitalar (entrada e saída da API REST).
+ *
+ * @author Guilherme Oliveira
+ */
 public class QuartoDTO {
 
     private Long id;
@@ -22,8 +27,19 @@ public class QuartoDTO {
 
     private Integer ocupacaoAtual;
     private StatusQuarto situacao;
+    private Integer vagasDisponiveis;
 
     public QuartoDTO() {
+    }
+
+    public QuartoDTO(Long id, String numeroIdentificacao, Integer andar, Integer capacidadeMaxima, Integer ocupacaoAtual, StatusQuarto situacao) {
+        this.id = id;
+        this.numeroIdentificacao = numeroIdentificacao;
+        this.andar = andar;
+        this.capacidadeMaxima = capacidadeMaxima;
+        this.ocupacaoAtual = ocupacaoAtual != null ? ocupacaoAtual : 0;
+        this.situacao = situacao != null ? situacao : StatusQuarto.DISPONIVEL;
+        this.vagasDisponiveis = Math.max(0, this.capacidadeMaxima - this.ocupacaoAtual);
     }
 
     public QuartoDTO(Quarto quarto) {
@@ -34,7 +50,17 @@ public class QuartoDTO {
             this.capacidadeMaxima = quarto.getCapacidadeMaxima();
             this.ocupacaoAtual = quarto.getOcupacaoAtual();
             this.situacao = quarto.getSituacao();
+            this.vagasDisponiveis = quarto.getVagasDisponiveis();
         }
+    }
+
+    /**
+     * Converte este DTO em uma nova entidade Quarto.
+     *
+     * @return Entidade Quarto.
+     */
+    public Quarto paraEntidade() {
+        return new Quarto(this.id, this.numeroIdentificacao, this.andar, this.capacidadeMaxima, this.ocupacaoAtual, this.situacao);
     }
 
     public Long getId() {
@@ -83,5 +109,26 @@ public class QuartoDTO {
 
     public void setSituacao(StatusQuarto situacao) {
         this.situacao = situacao;
+    }
+
+    public Integer getVagasDisponiveis() {
+        return vagasDisponiveis;
+    }
+
+    public void setVagasDisponiveis(Integer vagasDisponiveis) {
+        this.vagasDisponiveis = vagasDisponiveis;
+    }
+
+    @Override
+    public String toString() {
+        return "QuartoDTO{" +
+                "id=" + id +
+                ", numeroIdentificacao='" + numeroIdentificacao + '\'' +
+                ", andar=" + andar +
+                ", capacidadeMaxima=" + capacidadeMaxima +
+                ", ocupacaoAtual=" + ocupacaoAtual +
+                ", situacao=" + situacao +
+                ", vagasDisponiveis=" + vagasDisponiveis +
+                '}';
     }
 }
