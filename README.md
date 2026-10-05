@@ -27,11 +27,14 @@ A aplicação foi estruturada em uma **arquitetura em camadas** bem definida, ga
    - Definição de métodos de busca customizados e queries JPQL.
 
 4. **Model / Domain (`com.hospital.entidades`)**:
-   - Entidades JPA (`Paciente`, `ProfissionalSaude`, `Quarto`, `Consulta`, `Internacao`).
+   - Classes de modelo em Java puro e entidades JPA (`Paciente`, `ProfissionalSaude`, `Quarto`, `Consulta`, `Internacao`, `HistoricoMedico`).
+   - Métodos de domínio para cálculos de idade, capacidade e ocupação de quartos, controle de alta de internação, ciclo de vida de consulta e consolidação do prontuário médico.
    - Enums para controle de status (`StatusConsulta`, `StatusInternacao`, `StatusQuarto`).
 
 5. **DTO (`com.hospital.dtos`)**:
-   - Objetos de transferência de dados para isolar as entidades JPA da camada de apresentação da API REST.
+   - Objetos de transferência de dados para isolar as entidades JPA da camada de apresentação da API REST (`PacienteDTO`, `ProfissionalSaudeDTO`, `QuartoDTO`, `ConsultaDTO`, `ConsultaRequestDTO`, `InternacaoDTO`, `InternacaoRequestDTO`, `HistoricoMedicoDTO`).
+   - Validações de entrada via Bean Validation (`@NotBlank`, `@NotNull`, `@Past`, `@Email`, `@Min`, `@FutureOrPresent`).
+   - Mapeamento bidirecional para as classes de domínio (`paraEntidade()`).
 
 6. **Exception (`com.hospital.excecoes`)**:
    - Tratamento centralizado de erros com `@RestControllerAdvice` (`GlobalExceptionHandler`).
