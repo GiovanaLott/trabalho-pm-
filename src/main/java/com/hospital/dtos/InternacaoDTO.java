@@ -5,6 +5,11 @@ import com.hospital.entidades.StatusInternacao;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * DTO para transferência e saída de dados de Internação da API REST.
+ *
+ * @author Guilherme Oliveira
+ */
 public class InternacaoDTO {
 
     private Long id;
@@ -16,8 +21,21 @@ public class InternacaoDTO {
     private LocalDateTime dataEfetivaAlta;
     private String observacoes;
     private StatusInternacao status;
+    private Long diasInternacao;
 
     public InternacaoDTO() {
+    }
+
+    public InternacaoDTO(Long id, PacienteDTO paciente, ProfissionalSaudeDTO profissional, QuartoDTO quarto, LocalDateTime dataEntrada, LocalDate dataPrevistaAlta, LocalDateTime dataEfetivaAlta, String observacoes, StatusInternacao status) {
+        this.id = id;
+        this.paciente = paciente;
+        this.profissional = profissional;
+        this.quarto = quarto;
+        this.dataEntrada = dataEntrada;
+        this.dataPrevistaAlta = dataPrevistaAlta;
+        this.dataEfetivaAlta = dataEfetivaAlta;
+        this.observacoes = observacoes;
+        this.status = status;
     }
 
     public InternacaoDTO(Internacao internacao) {
@@ -31,6 +49,7 @@ public class InternacaoDTO {
             this.dataEfetivaAlta = internacao.getDataEfetivaAlta();
             this.observacoes = internacao.getObservacoes();
             this.status = internacao.getStatus();
+            this.diasInternacao = internacao.calcularDiasInternacao();
         }
     }
 
@@ -104,5 +123,24 @@ public class InternacaoDTO {
 
     public void setStatus(StatusInternacao status) {
         this.status = status;
+    }
+
+    public Long getDiasInternacao() {
+        return diasInternacao;
+    }
+
+    public void setDiasInternacao(Long diasInternacao) {
+        this.diasInternacao = diasInternacao;
+    }
+
+    @Override
+    public String toString() {
+        return "InternacaoDTO{" +
+                "id=" + id +
+                ", paciente=" + (paciente != null ? paciente.getNome() : null) +
+                ", profissional=" + (profissional != null ? profissional.getNome() : null) +
+                ", quarto=" + (quarto != null ? quarto.getNumeroIdentificacao() : null) +
+                ", status=" + status +
+                '}';
     }
 }

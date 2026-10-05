@@ -4,6 +4,11 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+/**
+ * DTO para entrada de dados de nova Internação na API REST.
+ *
+ * @author Guilherme Oliveira
+ */
 public class InternacaoRequestDTO {
 
     @NotNull(message = "O ID do paciente é obrigatório")
@@ -26,9 +31,13 @@ public class InternacaoRequestDTO {
         this.pacienteId = pacienteId;
         this.profissionalId = profissionalId;
         this.quartoId = quartoId;
-        this.dataEntrada = dataEntrada;
+        this.dataEntrada = dataEntrada != null ? dataEntrada : LocalDateTime.now();
         this.dataPrevistaAlta = dataPrevistaAlta;
         this.observacoes = observacoes;
+    }
+
+    public InternacaoRequestDTO(Long pacienteId, Long profissionalId, Long quartoId) {
+        this(pacienteId, profissionalId, quartoId, LocalDateTime.now(), null, null);
     }
 
     public Long getPacienteId() {
@@ -77,5 +86,16 @@ public class InternacaoRequestDTO {
 
     public void setObservacoes(String observacoes) {
         this.observacoes = observacoes;
+    }
+
+    @Override
+    public String toString() {
+        return "InternacaoRequestDTO{" +
+                "pacienteId=" + pacienteId +
+                ", profissionalId=" + profissionalId +
+                ", quartoId=" + quartoId +
+                ", dataEntrada=" + dataEntrada +
+                ", dataPrevistaAlta=" + dataPrevistaAlta +
+                '}';
     }
 }

@@ -1,9 +1,9 @@
 package com.hospital.servicos;
 
-import com.hospital.dtos.ConsultaDTO;
 import com.hospital.dtos.HistoricoMedicoDTO;
-import com.hospital.dtos.InternacaoDTO;
-import com.hospital.dtos.PacienteDTO;
+import com.hospital.entidades.Consulta;
+import com.hospital.entidades.HistoricoMedico;
+import com.hospital.entidades.Internacao;
 import com.hospital.entidades.Paciente;
 import com.hospital.excecoes.RecursoNaoEncontradoException;
 import com.hospital.repositorios.ConsultaRepository;
@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class HistoricoMedicoService {
@@ -35,14 +34,10 @@ public class HistoricoMedicoService {
         Paciente paciente = pacienteRepository.findById(pacienteId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Paciente não encontrado com ID: " + pacienteId));
 
-        List<ConsultaDTO> consultas = consultaRepository.findByPacienteId(pacienteId).stream()
-                .map(ConsultaDTO::new)
-                .collect(Collectors.toList());
+        List<Consulta> consultas = consultaRepository.findByPacienteId(pacienteId);
+        List<Internacao> internacoes = internacaoRepository.findByPacienteId(pacienteId);
 
-        List<InternacaoDTO> internacoes = internacaoRepository.findByPacienteId(pacienteId).stream()
-                .map(InternacaoDTO::new)
-                .collect(Collectors.toList());
-
-        return new HistoricoMedicoDTO(new PacienteDTO(paciente), consultas, internacoes);
+        HistoricoMedico historico = new HistoricoMedico(paciente, consultas, internacoes, "Prontuário consolidado do paciente");
+        return new HistoricoMedicoDTO(historico);
     }
 }
