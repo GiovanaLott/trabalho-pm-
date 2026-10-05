@@ -93,7 +93,7 @@ public class Internacao {
      */
     public void darAlta(LocalDateTime dataAlta, String observacoesAdicionais) {
         this.dataEfetivaAlta = dataAlta != null ? dataAlta : LocalDateTime.now();
-        this.status = StatusInternacao.FINALIZADA;
+        this.status = StatusInternacao.ALTA;
         if (observacoesAdicionais != null && !observacoesAdicionais.trim().isEmpty()) {
             if (this.observacoes == null || this.observacoes.trim().isEmpty()) {
                 this.observacoes = observacoesAdicionais;
@@ -125,8 +125,8 @@ public class Internacao {
         return StatusInternacao.EM_ANDAMENTO.equals(this.status);
     }
 
-    public boolean isFinalizada() {
-        return StatusInternacao.FINALIZADA.equals(this.status);
+    public boolean isAlta() {
+        return StatusInternacao.ALTA.equals(this.status);
     }
 
     // --- Getters e Setters ---

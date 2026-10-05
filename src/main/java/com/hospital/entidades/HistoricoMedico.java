@@ -114,11 +114,11 @@ public class HistoricoMedico {
     }
 
     /**
-     * Filtra e retorna apenas as internações cujo status é FINALIZADA.
+     * Filtra e retorna apenas as internações com alta concedida.
      */
-    public List<Internacao> getInternacoesFinalizadas() {
+    public List<Internacao> getInternacoesComAlta() {
         return this.internacoes.stream()
-                .filter(Internacao::isFinalizada)
+                .filter(Internacao::isAlta)
                 .toList();
     }
 
