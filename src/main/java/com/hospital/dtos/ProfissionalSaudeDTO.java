@@ -3,12 +3,19 @@ package com.hospital.dtos;
 import com.hospital.entidades.ProfissionalSaude;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
+/**
+ * DTO para transferência de dados de Profissional de Saúde (entrada e saída da API REST).
+ *
+ * @author Guilherme Oliveira
+ */
 public class ProfissionalSaudeDTO {
 
     private Long id;
 
     @NotBlank(message = "O nome é obrigatório")
+    @Size(min = 2, max = 100, message = "O nome deve ter entre 2 e 100 caracteres")
     private String nome;
 
     @NotBlank(message = "O registro profissional é obrigatório")
@@ -25,6 +32,15 @@ public class ProfissionalSaudeDTO {
     public ProfissionalSaudeDTO() {
     }
 
+    public ProfissionalSaudeDTO(Long id, String nome, String registroProfissional, String especialidade, String telefone, String email) {
+        this.id = id;
+        this.nome = nome;
+        this.registroProfissional = registroProfissional;
+        this.especialidade = especialidade;
+        this.telefone = telefone;
+        this.email = email;
+    }
+
     public ProfissionalSaudeDTO(ProfissionalSaude profissional) {
         if (profissional != null) {
             this.id = profissional.getId();
@@ -34,6 +50,15 @@ public class ProfissionalSaudeDTO {
             this.telefone = profissional.getTelefone();
             this.email = profissional.getEmail();
         }
+    }
+
+    /**
+     * Converte este DTO em uma entidade ProfissionalSaude para persistência.
+     *
+     * @return Instância de ProfissionalSaude.
+     */
+    public ProfissionalSaude paraEntidade() {
+        return new ProfissionalSaude(this.id, this.nome, this.registroProfissional, this.especialidade, this.telefone, this.email);
     }
 
     public Long getId() {
@@ -82,5 +107,16 @@ public class ProfissionalSaudeDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Override
+    public String toString() {
+        return "ProfissionalSaudeDTO{" +
+                "id=" + id +
+                ", nome='" + nome + '\'' +
+                ", registroProfissional='" + registroProfissional + '\'' +
+                ", especialidade='" + especialidade + '\'' +
+                ", email='" + email + '\'' +
+                '}';
     }
 }

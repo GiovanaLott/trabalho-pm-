@@ -4,19 +4,28 @@ import com.hospital.entidades.Paciente;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
+/**
+ * DTO para transferência de dados de Paciente (entrada e saída da API REST).
+ *
+ * @author Guilherme Oliveira
+ */
 public class PacienteDTO {
 
     private Long id;
 
     @NotBlank(message = "O nome é obrigatório")
+    @Size(min = 2, max = 100, message = "O nome deve ter entre 2 e 100 caracteres")
     private String nome;
 
     @NotBlank(message = "O CPF é obrigatório")
     private String cpf;
 
     @NotNull(message = "A data de nascimento é obrigatória")
+    @Past(message = "A data de nascimento deve ser uma data no passado")
     private LocalDate dataNascimento;
 
     private String telefone;
@@ -26,6 +35,16 @@ public class PacienteDTO {
     private String email;
 
     public PacienteDTO() {
+    }
+
+    public PacienteDTO(Long id, String nome, String cpf, LocalDate dataNascimento, String telefone, String endereco, String email) {
+        this.id = id;
+        this.nome = nome;
+        this.cpf = cpf;
+        this.dataNascimento = dataNascimento;
+        this.telefone = telefone;
+        this.endereco = endereco;
+        this.email = email;
     }
 
     public PacienteDTO(Paciente paciente) {
@@ -38,6 +57,15 @@ public class PacienteDTO {
             this.endereco = paciente.getEndereco();
             this.email = paciente.getEmail();
         }
+    }
+
+    /**
+     * Converte este DTO em uma nova entidade Paciente para persistência.
+     *
+     * @return Instância de Paciente.
+     */
+    public Paciente paraEntidade() {
+        return new Paciente(this.id, this.nome, this.cpf, this.dataNascimento, this.telefone, this.endereco, this.email);
     }
 
     public Long getId() {
@@ -94,5 +122,16 @@ public class PacienteDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Override
+    public String toString() {
+        return "PacienteDTO{" +
+                "id=" + id +
+                ", nome='" + nome + '\'' +
+                ", cpf='" + cpf + '\'' +
+                ", dataNascimento=" + dataNascimento +
+                ", email='" + email + '\'' +
+                '}';
     }
 }
