@@ -1,10 +1,24 @@
 package com.hospital.entidades;
 
 import jakarta.persistence.*;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
+/**
+ * Representa a entidade e modelo de domínio de uma Internação hospitalar.
+ * Em conformidade com os requisitos mínimos:
+ * - Paciente
+ * - Profissional responsável
+ * - Quarto
+ * - Data de entrada
+ * - Data prevista de alta
+ * - Data efetiva de alta
+ * - Observações
+ *
+ * @author Guilherme Oliveira
+ */
 @Entity
 @Table(name = "internacoes")
 public class Internacao {
@@ -41,9 +55,15 @@ public class Internacao {
     @Column(nullable = false, length = 20)
     private StatusInternacao status = StatusInternacao.EM_ANDAMENTO;
 
+    /**
+     * Construtor padrão (obrigatório para JPA).
+     */
     public Internacao() {
     }
 
+    /**
+     * Construtor completo com ID.
+     */
     public Internacao(Long id, Paciente paciente, ProfissionalSaude profissional, Quarto quarto, LocalDateTime dataEntrada, LocalDate dataPrevistaAlta, LocalDateTime dataEfetivaAlta, String observacoes, StatusInternacao status) {
         this.id = id;
         this.paciente = paciente;
@@ -55,6 +75,61 @@ public class Internacao {
         this.observacoes = observacoes;
         this.status = status != null ? status : StatusInternacao.EM_ANDAMENTO;
     }
+
+    /**
+     * Construtor sem ID para nova internação em andamento.
+     */
+    public Internacao(Paciente paciente, ProfissionalSaude profissional, Quarto quarto, LocalDateTime dataEntrada, LocalDate dataPrevistaAlta, String observacoes) {
+        this(null, paciente, profissional, quarto, dataEntrada, dataPrevistaAlta, null, observacoes, StatusInternacao.EM_ANDAMENTO);
+    }
+
+    // --- Métodos de Domínio (Java puro / POO / Regras de Negócio) ---
+
+    /**
+     * Registra a alta hospitalar do paciente, finalizando a internação.
+     *
+     * @param dataAlta Data e hora em que a alta foi concedida.
+     * @param observacoesAdicionais Parecer médico de encerramento da internação.
+     */
+    public void darAlta(LocalDateTime dataAlta, String observacoesAdicionais) {
+        this.dataEfetivaAlta = dataAlta != null ? dataAlta : LocalDateTime.now();
+        this.status = StatusInternacao.FINALIZADA;
+        if (observacoesAdicionais != null && !observacoesAdicionais.trim().isEmpty()) {
+            if (this.observacoes == null || this.observacoes.trim().isEmpty()) {
+                this.observacoes = observacoesAdicionais;
+            } else {
+                this.observacoes += " | Alta: " + observacoesAdicionais;
+            }
+        }
+    }
+
+    /**
+     * Registra a alta hospitalar com a data/hora atual.
+     */
+    public void darAlta() {
+        darAlta(LocalDateTime.now(), null);
+    }
+
+    /**
+     * Calcula o total de dias em que o paciente esteve/está internado.
+     *
+     * @return Quantidade de dias de permanência.
+     */
+    public long calcularDiasInternacao() {
+        if (this.dataEntrada == null) return 0;
+        LocalDateTime fim = (this.dataEfetivaAlta != null) ? this.dataEfetivaAlta : LocalDateTime.now();
+        return Math.max(1, Duration.between(this.dataEntrada, fim).toDays());
+    }
+
+    public boolean isEmAndamento() {
+        return StatusInternacao.EM_ANDAMENTO.equals(this.status);
+    }
+
+    public boolean isFinalizada() {
+        return StatusInternacao.FINALIZADA.equals(this.status);
+    }
+
+    // --- Getters e Setters ---
 
     public Long getId() {
         return id;
@@ -132,12 +207,26 @@ public class Internacao {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Internacao internacao = (Internacao) o;
-        return Objects.equals(id, internacao.id);
+        Internacao that = (Internacao) o;
+        return Objects.equals(id, that.id);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    @Override
+    public String toString() {
+        return "Internacao{" +
+                "id=" + id +
+                ", paciente=" + (paciente != null ? paciente.getNome() : null) +
+                ", profissional=" + (profissional != null ? profissional.getNome() : null) +
+                ", quarto=" + (quarto != null ? quarto.getNumeroIdentificacao() : null) +
+                ", dataEntrada=" + dataEntrada +
+                ", dataPrevistaAlta=" + dataPrevistaAlta +
+                ", dataEfetivaAlta=" + dataEfetivaAlta +
+                ", status=" + status +
+                '}';
     }
 }
