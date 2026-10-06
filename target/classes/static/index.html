@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema Hospitalar - Sprint 1</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <!-- Barra Lateral de Navegação -->
+    <aside class="sidebar">
+        <div class="brand">
+            <div class="brand-icon">🏥</div>
+            <div>
+                <div class="brand-title">Hospital Saúde</div>
+                <div class="brand-subtitle">Programação Modular - Sprint 1</div>
+            </div>
+        </div>
+
+        <ul class="menu">
+            <li class="menu-item">
+                <a class="menu-link active" data-tab="dashboard">
+                    <span>📊</span> Visão Geral
+                </a>
+            </li>
+            <li class="menu-item">
+                <a class="menu-link" data-tab="pacientes">
+                    <span>👤</span> Pacientes
+                </a>
+            </li>
+            <li class="menu-item">
+                <a class="menu-link" data-tab="profissionais">
+                    <span>🩺</span> Profissionais da Saúde
+                </a>
+            </li>
+            <li class="menu-item">
+                <a class="menu-link" data-tab="consultas">
+                    <span>📅</span> Consultas
+                </a>
+            </li>
+            <li class="menu-item">
+                <a class="menu-link" data-tab="internacoes">
+                    <span>🛏️</span> Internações
+                </a>
+            </li>
+            <li class="menu-item">
+                <a class="menu-link" data-tab="quartos">
+                    <span>🚪</span> Quartos e Leitos
+                </a>
+            </li>
+            <li class="menu-item">
+                <a class="menu-link" data-tab="historico">
+                    <span>📋</span> Histórico Médico
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-footer">
+            <p>PUC Minas — 2026</p>
+            <p>Sprint 1: Front-end Estático</p>
+        </div>
+    </aside>
+
+    <!-- Área Principal -->
+    <div class="main-wrapper">
+        <header class="topbar">
+            <h1 class="topbar-title" id="topbar-title">Visão Geral do Hospital</h1>
+            <span class="badge-sprint">Sprint 1: Telas sem funcionalidade</span>
+        </header>
+
+        <main class="content-container">
+            <div class="mockup-alert">
+                <span>ℹ️ <strong>Nota Acadêmica:</strong> Esta interface atende ao requisito da <em>Sprint 1 (telas sem funcionalidade)</em>. Os dados exibidos são ilustrativos para validação visual dos fluxos do sistema.</span>
+            </div>
+
+            <!-- ================= ABA: DASHBOARD ================= -->
+            <section id="dashboard" class="tab-content active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">👤</div>
+                        <div class="stat-info">
+                            <h4>Pacientes Cadastrados</h4>
+                            <p>128</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">🩺</div>
+                        <div class="stat-info">
+                            <h4>Corpo Clínico Ativo</h4>
+                            <p>24</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">📅</div>
+                        <div class="stat-info">
+                            <h4>Consultas Hoje</h4>
+                            <p>18</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">🛏️</div>
+                        <div class="stat-info">
+                            <h4>Leitos Ocupados</h4>
+                            <p>32 / 40</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Módulos do Sistema Hospitalar</h2>
+                    </div>
+                    <p style="color: #64748b; font-size: 14px; line-height: 1.6;">
+                        Utilize o menu lateral para navegar entre as interfaces conceituais desenvolvidas para a Sprint 1. O sistema contempla cadastro e listagem de pacientes e médicos, agendamento com trava de choque de horários, alocação de leitos em quartos, controle de internações e prontuário médico unificado.
+                    </p>
+                </div>
+            </section>
+
+            <!-- ================= ABA: PACIENTES ================= -->
+            <section id="pacientes" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Cadastrar Novo Paciente</h2>
+                    </div>
+                    <form>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Nome Completo *</label>
+                                <input type="text" class="form-input" placeholder="Ex: Ana Clara Santos" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">CPF *</label>
+                                <input type="text" class="form-input" placeholder="000.000.000-00" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Data de Nascimento *</label>
+                                <input type="date" class="form-input" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Telefone</label>
+                                <input type="tel" class="form-input" placeholder="(31) 98888-7777">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">E-mail</label>
+                                <input type="email" class="form-input" placeholder="paciente@email.com">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Endereço Completo</label>
+                                <input type="text" class="form-input" placeholder="Rua, número, bairro, cidade">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Salvar Paciente</button>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Pacientes Cadastrados</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>CPF</th>
+                                    <th>Nascimento</th>
+                                    <th>Telefone</th>
+                                    <th>E-mail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Carlos Eduardo Silva</td>
+                                    <td>123.456.789-01</td>
+                                    <td>15/04/1988</td>
+                                    <td>(31) 98765-4321</td>
+                                    <td>carlos.silva@email.com</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Beatriz Lima Souza</td>
+                                    <td>987.654.321-99</td>
+                                    <td>22/11/1995</td>
+                                    <td>(31) 99123-8877</td>
+                                    <td>beatriz.lima@email.com</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Fernando Henrique Dias</td>
+                                    <td>555.444.333-22</td>
+                                    <td>03/08/1972</td>
+                                    <td>(31) 98456-1122</td>
+                                    <td>fernando.dias@email.com</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= ABA: PROFISSIONAIS ================= -->
+            <section id="profissionais" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Cadastrar Profissional da Saúde</h2>
+                    </div>
+                    <form>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Nome Completo *</label>
+                                <input type="text" class="form-input" placeholder="Ex: Dra. Mariana Costa" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Registro Profissional (CRM/COREN) *</label>
+                                <input type="text" class="form-input" placeholder="CRM-MG 12345" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Especialidade *</label>
+                                <input type="text" class="form-input" placeholder="Ex: Cardiologia, Clínica Geral" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Telefone</label>
+                                <input type="tel" class="form-input" placeholder="(31) 99999-8888">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">E-mail</label>
+                                <input type="email" class="form-input" placeholder="medico@hospital.com">
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Salvar Profissional</button>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Corpo Clínico Cadastrado</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Nome</th>
+                                    <th>Registro</th>
+                                    <th>Especialidade</th>
+                                    <th>Telefone</th>
+                                    <th>E-mail</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>1</td>
+                                    <td>Dr. Roberto Almeida</td>
+                                    <td>CRM-MG 45892</td>
+                                    <td>Cardiologia</td>
+                                    <td>(31) 98877-1122</td>
+                                    <td>roberto.almeida@hospital.com</td>
+                                </tr>
+                                <tr>
+                                    <td>2</td>
+                                    <td>Dra. Juliana Mendes</td>
+                                    <td>CRM-MG 62145</td>
+                                    <td>Ortopedia</td>
+                                    <td>(31) 97766-3344</td>
+                                    <td>juliana.mendes@hospital.com</td>
+                                </tr>
+                                <tr>
+                                    <td>3</td>
+                                    <td>Dr. Lucas Nogueira</td>
+                                    <td>CRM-MG 39481</td>
+                                    <td>Pediatria</td>
+                                    <td>(31) 99988-5544</td>
+                                    <td>lucas.nogueira@hospital.com</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= ABA: CONSULTAS ================= -->
+            <section id="consultas" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Agendar Nova Consulta</h2>
+                    </div>
+                    <form>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Paciente *</label>
+                                <select class="form-select" required>
+                                    <option value="">Selecione o paciente...</option>
+                                    <option value="1">Carlos Eduardo Silva (CPF: 123.456.789-01)</option>
+                                    <option value="2">Beatriz Lima Souza (CPF: 987.654.321-99)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Profissional Responsável *</label>
+                                <select class="form-select" required>
+                                    <option value="">Selecione o médico...</option>
+                                    <option value="1">Dr. Roberto Almeida (Cardiologia)</option>
+                                    <option value="2">Dra. Juliana Mendes (Ortopedia)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Data e Hora *</label>
+                                <input type="datetime-local" class="form-input" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label">Observações / Motivo</label>
+                                <textarea class="form-textarea" placeholder="Sintomas relatados ou observações preliminares..."></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Agendar Consulta</button>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Consultas Agendadas e Realizadas</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Paciente</th>
+                                    <th>Profissional</th>
+                                    <th>Data / Hora</th>
+                                    <th>Status</th>
+                                    <th>Observações</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>101</td>
+                                    <td>Carlos Eduardo Silva</td>
+                                    <td>Dr. Roberto Almeida</td>
+                                    <td>06/10/2026 14:30</td>
+                                    <td><span class="status-pill status-agendada">AGENDADA</span></td>
+                                    <td>Consulta de rotina cardiológica</td>
+                                </tr>
+                                <tr>
+                                    <td>102</td>
+                                    <td>Beatriz Lima Souza</td>
+                                    <td>Dra. Juliana Mendes</td>
+                                    <td>05/10/2026 09:00</td>
+                                    <td><span class="status-pill status-realizada">REALIZADA</span></td>
+                                    <td>Retorno pós-exame de raio-x</td>
+                                </tr>
+                                <tr>
+                                    <td>103</td>
+                                    <td>Fernando Henrique Dias</td>
+                                    <td>Dr. Lucas Nogueira</td>
+                                    <td>04/10/2026 16:00</td>
+                                    <td><span class="status-pill status-cancelada">CANCELADA</span></td>
+                                    <td>Paciente solicitou reagendamento</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= ABA: INTERNAÇÕES ================= -->
+            <section id="internacoes" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Registrar Nova Internação</h2>
+                    </div>
+                    <form>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Paciente *</label>
+                                <select class="form-select" required>
+                                    <option value="">Selecione o paciente...</option>
+                                    <option value="1">Carlos Eduardo Silva</option>
+                                    <option value="3">Fernando Henrique Dias</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Quarto Destino *</label>
+                                <select class="form-select" required>
+                                    <option value="">Selecione o quarto disponível...</option>
+                                    <option value="1">Quarto 101-A (1 vaga disponível)</option>
+                                    <option value="2">Quarto 102-B (2 vagas disponíveis)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Data e Hora de Entrada *</label>
+                                <input type="datetime-local" class="form-input" required>
+                            </div>
+                            <div class="form-group full-width">
+                                <label class="form-label">Motivo da Internação *</label>
+                                <textarea class="form-textarea" placeholder="Diagnóstico inicial ou procedimento cirúrgico..." required></textarea>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Efetuar Internação</button>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Histórico de Internações</h2>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="custom-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Paciente</th>
+                                    <th>Quarto</th>
+                                    <th>Data Entrada</th>
+                                    <th>Data Alta</th>
+                                    <th>Status</th>
+                                    <th>Motivo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>201</td>
+                                    <td>Carlos Eduardo Silva</td>
+                                    <td>Quarto 101-A</td>
+                                    <td>01/10/2026 08:00</td>
+                                    <td>-</td>
+                                    <td><span class="status-pill status-em-andamento">EM_ANDAMENTO</span></td>
+                                    <td>Pós-operatório cardíaco</td>
+                                </tr>
+                                <tr>
+                                    <td>202</td>
+                                    <td>Beatriz Lima Souza</td>
+                                    <td>Quarto 102-B</td>
+                                    <td>25/09/2026 10:00</td>
+                                    <td>28/09/2026 14:00</td>
+                                    <td><span class="status-pill status-alta">ALTA</span></td>
+                                    <td>Tratamento de infecção respiratória</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= ABA: QUARTOS ================= -->
+            <section id="quartos" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Cadastrar Novo Quarto</h2>
+                    </div>
+                    <form>
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label class="form-label">Identificação / Número do Quarto *</label>
+                                <input type="text" class="form-input" placeholder="Ex: Quarto 201" required>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Capacidade Máxima (Leitos) *</label>
+                                <input type="number" class="form-input" min="1" max="10" value="2" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Salvar Quarto</button>
+                    </form>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Status dos Leitos e Ocupação</h2>
+                    </div>
+                    <div class="quartos-grid">
+                        <div class="quarto-card">
+                            <div class="quarto-card-header">
+                                <span class="quarto-numero">Quarto 101-A</span>
+                                <span class="status-pill status-disponivel">DISPONÍVEL</span>
+                            </div>
+                            <div>
+                                <small style="color: #64748b;">Ocupação: 1 de 2 leitos</small>
+                                <div class="progress-bar" style="margin-top: 6px;">
+                                    <div class="progress-fill" style="width: 50%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="quarto-card">
+                            <div class="quarto-card-header">
+                                <span class="quarto-numero">Quarto 102-B</span>
+                                <span class="status-pill status-disponivel">DISPONÍVEL</span>
+                            </div>
+                            <div>
+                                <small style="color: #64748b;">Ocupação: 0 de 2 leitos</small>
+                                <div class="progress-bar" style="margin-top: 6px;">
+                                    <div class="progress-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="quarto-card">
+                            <div class="quarto-card-header">
+                                <span class="quarto-numero">Quarto 103-UTI</span>
+                                <span class="status-pill status-lotado">LOTADO</span>
+                            </div>
+                            <div>
+                                <small style="color: #64748b;">Ocupação: 4 de 4 leitos</small>
+                                <div class="progress-bar" style="margin-top: 6px;">
+                                    <div class="progress-fill full" style="width: 100%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ================= ABA: HISTÓRICO MÉDICO ================= -->
+            <section id="historico" class="tab-content">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Consultar Prontuário do Paciente</h2>
+                    </div>
+                    <div class="form-grid" style="align-items: flex-end;">
+                        <div class="form-group" style="flex: 1;">
+                            <label class="form-label">Selecione o Paciente</label>
+                            <select class="form-select">
+                                <option value="1">Carlos Eduardo Silva (CPF: 123.456.789-01)</option>
+                                <option value="2">Beatriz Lima Souza (CPF: 987.654.321-99)</option>
+                            </select>
+                        </div>
+                        <button type="button" class="btn btn-primary" style="height: 42px;">Visualizar Histórico</button>
+                    </div>
+                </div>
+
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Prontuário Médico Consolidado</h2>
+                    </div>
+
+                    <div class="prontuario-header">
+                        <h3 style="font-size: 16px; margin-bottom: 10px; color: #1e293b;">Dados do Paciente</h3>
+                        <div class="prontuario-grid">
+                            <div><strong>Nome:</strong> Carlos Eduardo Silva</div>
+                            <div><strong>CPF:</strong> 123.456.789-01</div>
+                            <div><strong>Nascimento:</strong> 15/04/1988 (38 anos)</div>
+                            <div><strong>Telefone:</strong> (31) 98765-4321</div>
+                            <div><strong>E-mail:</strong> carlos.silva@email.com</div>
+                            <div><strong>Endereço:</strong> Av. Afonso Pena, 1000 - BH</div>
+                        </div>
+                    </div>
+
+                    <h4 style="font-size: 15px; margin: 20px 0 10px; color: #334155;">Histórico de Consultas</h4>
+                    <table class="custom-table" style="margin-bottom: 24px;">
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Médico</th>
+                                <th>Especialidade</th>
+                                <th>Status</th>
+                                <th>Observações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>06/10/2026</td>
+                                <td>Dr. Roberto Almeida</td>
+                                <td>Cardiologia</td>
+                                <td><span class="status-pill status-agendada">AGENDADA</span></td>
+                                <td>Consulta de rotina cardiológica</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h4 style="font-size: 15px; margin: 20px 0 10px; color: #334155;">Histórico de Internações</h4>
+                    <table class="custom-table">
+                        <thead>
+                            <tr>
+                                <th>Entrada</th>
+                                <th>Alta</th>
+                                <th>Quarto</th>
+                                <th>Status</th>
+                                <th>Motivo</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>01/10/2026</td>
+                                <td>-</td>
+                                <td>Quarto 101-A</td>
+                                <td><span class="status-pill status-em-andamento">EM_ANDAMENTO</span></td>
+                                <td>Pós-operatório cardíaco</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
