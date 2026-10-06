@@ -6,20 +6,42 @@ Trabalho Prático desenvolvido para a disciplina de **Programação Modular** do
 
 ## 📌 Visão Geral do Sistema
 
-O **Sistema de Informação Hospitalar** é uma aplicação backend desenvolvida em **Java** com o framework **Spring Boot**. O objetivo do sistema é fornecer uma API REST robusta, modular e de fácil manutenção para o gerenciamento dos fluxos hospitalares essenciais, incluindo:
+O **Sistema de Informação Hospitalar** é uma aplicação desenvolvida em **Java** com o framework **Spring Boot**. O objetivo do sistema é fornecer uma API REST robusta, modular e de fácil manutenção para o gerenciamento dos fluxos hospitalares essenciais, incluindo:
 
 * Cadastro e gestão de **pacientes**;
 * Cadastro e gestão de **profissionais de saúde** (médicos, enfermeiros, etc.);
 * Gerenciamento e controle de vagas em **quartos/leitos**;
 * Agendamento, cancelamento e conclusão de **consultas ambulatoriais**;
 * Controle de **internações hospitalares** e altas médicas;
-* Consulta unificada do **histórico médico / prontuário** dos pacientes.
+* Consulta unificada do **histórico médico / prontuário** dos pacientes;
+* Interface web conceitual (**front-end sem funcionalidade** para a Sprint 1).
+
+---
+
+## 🎨 Entregáveis da Sprint 1
+
+A Sprint 1 contempla os seguintes artefatos exigidos:
+
+1. **Front-end (Telas sem funcionalidade)**:
+   * Interface visual construída em HTML5 e CSS3 (localizada em `src/main/resources/static/`).
+   * Acessível diretamente pelo navegador em `http://localhost:8080/` ao executar a aplicação Spring Boot, ou abrindo diretamente o arquivo `index.html`.
+   * Contempla telas conceituais para: *Visão Geral*, *Pacientes*, *Profissionais*, *Consultas*, *Internações*, *Quartos* e *Histórico Médico*.
+
+2. **Diagrama de Classes**:
+   * Documento com representação visual em Mermaid e código PlantUML disponível em [`docs/DIAGRAMA_CLASSES.md`](docs/DIAGRAMA_CLASSES.md).
+
+3. **Cartões CRC**:
+   * Cartões no modelo acadêmico (Classe, Responsabilidades, Colaborações) disponíveis em [`docs/CARTOES_CRC.md`](docs/CARTOES_CRC.md).
+
+4. **Controllers Básicas (Responsabilidade da Sofia)**:
+   * [`PacienteController`](src/main/java/com/hospital/controladores/PacienteController.java)
+   * [`ProfissionalController`](src/main/java/com/hospital/controladores/ProfissionalController.java)
 
 ---
 
 ## 🏢 Arquitetura e Decisões Técnicas
 
-O projeto adota uma **Arquitetura em Camadas (Layered Architecture)**, amplamente utilizada no ecossistema Spring, com separação estrita de responsabilidades:
+O projeto adota uma **Arquitetura em Camadas (Layered Architecture)** com separação estrita de responsabilidades:
 
 ```
 src/main/java/com/hospital/
@@ -33,57 +55,51 @@ src/main/java/com/hospital/
 
 ### 1. Camada de Controladores (`controladores`)
 * Responsável por expor os endpoints HTTP e receber as requisições REST.
-* Utiliza injeção de dependências via construtor (boa prática recomendada).
-* Realiza validação de entrada utilizando as anotações do Bean Validation (`@Valid`, `@NotBlank`, `@NotNull`, `@Email`).
-* Delega a execução para a camada de serviço correspondente e retorna os códigos de status HTTP apropriados (`200 OK`, `201 CREATED`, `400 BAD REQUEST`, `404 NOT FOUND`).
+* Injeção de dependências via construtor.
+* Validação de entrada utilizando anotações do Bean Validation (`@Valid`, `@NotBlank`, `@NotNull`, `@Email`).
+* Retorna códigos de status HTTP adequados (`200 OK`, `201 CREATED`, `400 BAD REQUEST`, `404 NOT FOUND`).
 
 ### 2. Camada de Serviços (`servicos`)
-* Centraliza toda a lógica de negócio, garantindo que regras como choque de horários e capacidade de leitos nunca sejam violadas.
-* Controla a demarcação transacional (`@Transactional` e `@Transactional(readOnly = true)`).
-* Converte entidades em DTOs para envio à camada de apresentação.
+* Centraliza toda a lógica de negócio (e.g., choque de horários e capacidade máxima de leitos).
+* Controle transacional (`@Transactional` e `@Transactional(readOnly = true)`).
+* Conversão entre entidades e DTOs.
 
 ### 3. Camada de Repositórios (`repositorios`)
-* Interfaces que estendem `JpaRepository`, permitindo operações de CRUD e paginação sem código boilerplate.
-* Contém métodos de consulta derivados (e.g. `existsByCpf`, `existsByRegistroProfissional`) e JPQL quando necessário.
+* Interfaces estendendo `JpaRepository` com queries derivadas e JPQL.
 
 ### 4. Camada de Entidades (`entidades`)
-* Representa o modelo relacional do banco de dados mapeado com JPA/Hibernate.
-* Possui chaves primárias autoincrementais (`@GeneratedValue(strategy = GenerationType.IDENTITY)`), restrições de unicidade e enums de status.
+* Entidades JPA mapeadas para banco relacional com enums para controle de estado.
 
 ### 5. Camada de DTOs (`dtos`)
-* Isola a estrutura interna do banco de dados das interfaces expostas externamente na API.
-* Evita problemas de referência circular no JSON e vazamento de dados sensíveis ou colunas internas.
+* Objetos que isolam a camada de dados da camada de apresentação, evitando acoplamento excessivo.
 
 ### 6. Tratamento de Exceções (`excecoes`)
-* Utiliza um `@RestControllerAdvice` (`GlobalExceptionHandler`) para interceptar exceções de negócio e validação, padronizando a resposta JSON de erro com `timestamp`, `status`, `error` e detalhes amigáveis.
+* Centralizado com `@RestControllerAdvice` (`GlobalExceptionHandler`), padronizando o payload JSON de resposta em caso de erros.
 
 ---
 
-## ⚙️ Regras de Negócio Implementadas
+## ⚙️ Regras de Negócio do Sistema
 
 1. **Pacientes (`PacienteService`)**:
-   * O CPF deve ser único no sistema. Não é permitido cadastrar dois pacientes com o mesmo CPF.
-   * Campos obrigatórios: Nome, CPF e Data de Nascimento.
+   * CPF único no sistema. Campos obrigatórios: Nome, CPF e Data de Nascimento.
 
 2. **Profissionais de Saúde (`ProfissionalSaudeService`)**:
-   * O Registro Profissional (CRM/COREN) deve ser único.
-   * Campos obrigatórios: Nome, Registro Profissional e Especialidade.
+   * Registro Profissional (CRM/COREN) único. Campos obrigatórios: Nome, Registro e Especialidade.
 
 3. **Quartos (`QuartoService`)**:
-   * Cada quarto possui uma capacidade máxima de leitos e status (`DISPONIVEL`, `LOTADO`, `MANUTENCAO`).
-   * O sistema impede internações quando a ocupação atinge a capacidade.
+   * Capacidade máxima de leitos e status (`DISPONIVEL`, `LOTADO`, `MANUTENCAO`).
 
 4. **Consultas (`ConsultaService`)**:
-   * **Prevenção de Choque de Horários**: Um profissional não pode ter dois atendimentos marcados com sobreposição de horário (janela mínima de 30 minutos).
-   * Validação obrigatória da existência prévia do paciente e do profissional no banco.
+   * Prevenção de choque de horários (janela mínima de 30 minutos por profissional).
+   * Validação obrigatória da existência do paciente e do médico.
 
 5. **Internações (`InternacaoService`)**:
-   * Valida a capacidade do quarto antes de internar.
-   * Incrementa automaticamente a ocupação do quarto ao internar e decrementa ao conceder alta hospitalar.
-   * Impede que um paciente seja internado em duplicidade se já possuir internação em andamento.
+   * Verificação de vaga disponível no quarto antes de internar.
+   * Controle automático de ocupação (incremento na entrada e decremento na alta).
+   * Bloqueio de internações simultâneas para o mesmo paciente.
 
 6. **Histórico Médico (`HistoricoMedicoService`)**:
-   * Agrega em um único payload todas as consultas (agendadas, realizadas ou canceladas) e todas as internações de determinado paciente.
+   * Consolidação de todas as consultas e internações do paciente em um único prontuário.
 
 ---
 
@@ -92,7 +108,7 @@ src/main/java/com/hospital/
 ### 👤 Pacientes (`/pacientes`)
 * `POST /pacientes` — Cadastrar um novo paciente.
 * `GET /pacientes` — Listar todos os pacientes cadastrados.
-* `GET /pacientes/{id}` — Buscar dados detalhados de um paciente por ID.
+* `GET /pacientes/{id}` — Buscar paciente por ID.
 
 ### 🩺 Profissionais de Saúde (`/profissionais`)
 * `POST /profissionais` — Cadastrar um novo profissional de saúde.
@@ -112,7 +128,7 @@ src/main/java/com/hospital/
 * `GET /consultas/paciente/{pacienteId}` — Listar consultas de um paciente.
 * `GET /consultas/profissional/{profissionalId}` — Listar consultas de um profissional.
 * `PUT /consultas/{id}/cancelar` — Cancelar uma consulta.
-* `PUT /consultas/{id}/finalizar` — Concluir atendimento e adicionar observações médicas.
+* `PUT /consultas/{id}/finalizar` — Concluir atendimento com observações médicas.
 
 ### 🏥 Internações (`/internacoes`)
 * `POST /internacoes` — Registrar internação hospitalar.
@@ -130,12 +146,10 @@ src/main/java/com/hospital/
 ## 🛠️ Tecnologias e Dependências
 
 * **Java 17** (LTS)
-* **Spring Boot 3.2.3**
-  * `spring-boot-starter-web` (API REST / MVC)
-  * `spring-boot-starter-data-jpa` (Persistência e ORM)
-  * `spring-boot-starter-validation` (Bean Validation)
+* **Spring Boot 3.2.3** (Spring Web, Spring Data JPA, Spring Validation)
 * **H2 Database** (Banco de dados relacional em memória)
-* **JUnit 5 & Mockito** (Testes unitários automatizados)
+* **JUnit 5 & Mockito** (Testes unitários)
+* **HTML5 / CSS3 / JavaScript** (Front-end conceitual sem funcionalidade)
 * **Maven** (Gerenciador de dependências e build)
 
 ---
@@ -143,27 +157,21 @@ src/main/java/com/hospital/
 ## 💻 Como Executar a Aplicação
 
 ### Pré-requisitos
-* Java JDK 17 ou superior instalado.
-* Maven configurado no PATH (ou IDE como IntelliJ IDEA / Eclipse / VS Code).
+* Java JDK 17 ou superior.
+* Maven instalado (ou executar diretamente via IDE).
 
-### Execução via Linha de Comando
+### Executar a API e o Front-end
 ```bash
-# Compilar e rodar a aplicação
 mvn spring-boot:run
 ```
 
-A API estará disponível em: `http://localhost:8080`
+* **Front-end**: Acesse `http://localhost:8080/` no navegador.
+* **Console H2**: Acesse `http://localhost:8080/h2-console`
+  * JDBC URL: `jdbc:h2:mem:hospitaldb`
+  * Usuário: `sa`
+  * Senha: *(em branco)*
 
-### Console do Banco H2
-Com a aplicação em execução, acesse o console web do H2 em:
-* **URL**: `http://localhost:8080/h2-console`
-* **JDBC URL**: `jdbc:h2:mem:hospitaldb`
-* **User**: `sa`
-* **Password**: *(deixar em branco)*
-
-### Execução dos Testes Unitários
+### Executar os Testes Unitários
 ```bash
 mvn test
-```oot 3.2.3** (Spring Web, Spring Data JPA, Spring Validation)
-- **H2 Database** (Banco em memória para desenvolvimento e testes)
-- **JUnit 5 & Mockito** (Testes unitários)
+```
