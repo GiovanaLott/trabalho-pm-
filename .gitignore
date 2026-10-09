@@ -1,0 +1,22 @@
+# Build (Maven)
+target/
+*.class
+*.log
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.classpath
+.project
+.settings/
+.sts4/
+.factorypath
+
+# Sistema operacional
+.DS_Store
+Thumbs.db
+
+# Credenciais locais (nunca versionar)
+.env
+application-local.properties

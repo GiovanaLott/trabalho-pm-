@@ -5,7 +5,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "consultas")
+@Table(name = "consultas", indexes = {
+        // Acelera a verificacao de choque de horario do profissional
+        @Index(name = "idx_consulta_profissional_data", columnList = "profissional_id, data_hora")
+})
 public class Consulta {
 
     @Id

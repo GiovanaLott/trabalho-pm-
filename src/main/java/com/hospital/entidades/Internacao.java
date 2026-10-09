@@ -6,7 +6,11 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name = "internacoes")
+@Table(name = "internacoes", indexes = {
+        // Acelera "paciente ja internado?" e a contagem de ocupacao por quarto
+        @Index(name = "idx_internacao_paciente_status", columnList = "paciente_id, status"),
+        @Index(name = "idx_internacao_quarto_status", columnList = "quarto_id, status")
+})
 public class Internacao {
 
     @Id

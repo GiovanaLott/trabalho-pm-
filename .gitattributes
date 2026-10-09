@@ -1,0 +1,4 @@
+# Garante terminacao de linha correta nos scripts do Maven Wrapper
+/mvnw                                   text eol=lf
+/.mvn/wrapper/maven-wrapper.properties  text eol=lf
+*.cmd                                   text eol=crlf
