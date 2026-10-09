@@ -37,6 +37,14 @@
             <artifactId>spring-boot-starter-validation</artifactId>
         </dependency>
 
+        <!-- Banco de dados principal: MySQL 8 -->
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- H2: perfil "h2" (execucao sem MySQL) e base dos testes automatizados -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
