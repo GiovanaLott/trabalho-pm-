@@ -27,6 +27,13 @@ public class Quarto {
     @Column(nullable = false, length = 20)
     private StatusQuarto situacao = StatusQuarto.DISPONIVEL;
 
+    /**
+     * Controle de concorrencia otimista: se duas internacoes tentarem ocupar o
+     * ultimo leito ao mesmo tempo, a segunda falha em vez de estourar a capacidade.
+     */
+    @Version
+    private Long version;
+
     public Quarto() {
     }
 
@@ -85,6 +92,10 @@ public class Quarto {
 
     public void setSituacao(StatusQuarto situacao) {
         this.situacao = situacao;
+    }
+
+    public Long getVersion() {
+        return version;
     }
 
     public void incrementarOcupacao() {
