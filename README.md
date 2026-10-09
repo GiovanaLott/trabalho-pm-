@@ -147,8 +147,9 @@ src/main/java/com/hospital/
 
 * **Java 17** (LTS)
 * **Spring Boot 3.2.3** (Spring Web, Spring Data JPA, Spring Validation)
-* **H2 Database** (Banco de dados relacional em memória)
-* **JUnit 5 & Mockito** (Testes unitários)
+* **PostgreSQL (Supabase)** (Banco de dados relacional em produção/desenvolvimento)
+* **H2 Database** (Banco de dados em memória para execução isolada e rápida da suíte de testes)
+* **JUnit 5, Mockito & MockMvc** (Testes unitários de serviços e testes automatizados de integração da API REST)
 * **HTML5 / CSS3 / JavaScript** (Front-end conceitual sem funcionalidade)
 * **Maven** (Gerenciador de dependências e build)
 
@@ -160,18 +161,23 @@ src/main/java/com/hospital/
 * Java JDK 17 ou superior.
 * Maven instalado (ou executar diretamente via IDE).
 
+### Configuração do Banco de Dados (PostgreSQL / Supabase)
+A aplicação está configurada para conectar ao PostgreSQL hospedado no Supabase (`shluawyyxdnitwcaagwx`). As propriedades no `src/main/resources/application.properties` podem ser customizadas diretamente ou via variáveis de ambiente:
+
+* `DB_URL`: URL JDBC do PostgreSQL (padrão: `jdbc:postgresql://db.shluawyyxdnitwcaagwx.supabase.co:5432/postgres?sslmode=require`)
+* `DB_USERNAME`: Usuário do banco (padrão: `postgres`)
+* `DB_PASSWORD`: Senha do banco definida no Supabase
+
 ### Executar a API e o Front-end
 ```bash
 mvn spring-boot:run
 ```
 
 * **Front-end**: Acesse `http://localhost:8080/` no navegador.
-* **Console H2**: Acesse `http://localhost:8080/h2-console`
-  * JDBC URL: `jdbc:h2:mem:hospitaldb`
-  * Usuário: `sa`
-  * Senha: *(em branco)*
+* **API REST**: Endpoints disponíveis na porta `8080` (ex: `/pacientes`, `/profissionais`, `/consultas`, `/internacoes`, `/quartos`, `/historico`).
 
-### Executar os Testes Unitários
+### Executar os Testes Automatizados (Serviços e API REST)
+Os testes utilizam automaticamente o banco H2 em memória, garantindo execução rápida, idempotente e sem dependência de rede:
 ```bash
 mvn test
 ```
