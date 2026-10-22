@@ -104,4 +104,81 @@ class InternacaoServiceTest {
         assertEquals(0, quarto.getOcupacaoAtual());
         verify(quartoRepository, times(1)).save(quarto);
     }
+
+    @Test
+    void realizarInternacao_DeveLancarExcecao_QuandoQuartoEstiverIndisponivel() {
+        quarto.setSituacao(StatusQuarto.OCUPADO);
+
+        InternacaoRequestDTO dto = new InternacaoRequestDTO(1L, 1L, 1L, LocalDateTime.now(), LocalDate.now().plusDays(5), "Pós-operatório");
+
+        when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
+        when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
+        when(quartoRepository.findById(1L)).thenReturn(Optional.of(quarto));
+        when(internacaoRepository.existsByPacienteIdAndStatus(1L, StatusInternacao.EM_ANDAMENTO)).thenReturn(false);
+
+        assertThrows(QuartoLotadoException.class, () -> internacaoService.realizarInternacao(dto));
+        verify(internacaoRepository, never()).save(any(Internacao.class));
+    }
+
+    @Test
+    void darAlta_DeveLancarExcecao_QuandoInternacaoJaRecebeuAlta() {
+        Internacao internacao = new Internacao(10L, paciente, profissional, quarto, LocalDateTime.now().minusDays(3), LocalDate.now(), LocalDateTime.now().minusDays(1), "Observações", StatusInternacao.ALTA);
+
+        when(internacaoRepository.findById(10L)).thenReturn(Optional.of(internacao));
+
+        com.hospital.excecoes.RegraNegocioException ex = assertThrows(
+                com.hospital.excecoes.RegraNegocioException.class,
+                () -> internacaoService.darAlta(10L)
+        );
+
+        assertTrue(ex.getMessage().contains("Esta internação já recebeu alta anteriormente"));
+        verify(quartoRepository, never()).save(any(Quarto.class));
+    }
+
+    @Test
+    void cancelarInternacao_ComSucesso_DeveDecrementarOcupacaoDoQuarto() {
+        quarto.setOcupacaoAtual(1);
+        Internacao internacao = new Internacao(10L, paciente, profissional, quarto, LocalDateTime.now().minusDays(1), LocalDate.now().plusDays(2), null, "Observações", StatusInternacao.EM_ANDAMENTO);
+
+        when(internacaoRepository.findById(10L)).thenReturn(Optional.of(internacao));
+        when(internacaoRepository.save(any(Internacao.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        InternacaoDTO resultado = internacaoService.cancelarInternacao(10L);
+
+        assertNotNull(resultado);
+        assertEquals(StatusInternacao.CANCELADA, resultado.getStatus());
+        assertEquals(0, quarto.getOcupacaoAtual());
+        verify(quartoRepository, times(1)).save(quarto);
+        verify(internacaoRepository, times(1)).save(internacao);
+    }
+
+    @Test
+    void cancelarInternacao_DeveLancarExcecao_QuandoInternacaoJaRecebeuAlta() {
+        Internacao internacao = new Internacao(10L, paciente, profissional, quarto, LocalDateTime.now().minusDays(3), LocalDate.now(), LocalDateTime.now(), "Observações", StatusInternacao.ALTA);
+
+        when(internacaoRepository.findById(10L)).thenReturn(Optional.of(internacao));
+
+        com.hospital.excecoes.RegraNegocioException ex = assertThrows(
+                com.hospital.excecoes.RegraNegocioException.class,
+                () -> internacaoService.cancelarInternacao(10L)
+        );
+
+        assertTrue(ex.getMessage().contains("Não é possível cancelar uma internação que já recebeu alta"));
+        verify(quartoRepository, never()).save(any(Quarto.class));
+    }
+
+    @Test
+    void atualizarInformacoes_ComSucesso() {
+        Internacao internacao = new Internacao(10L, paciente, profissional, quarto, LocalDateTime.now().minusDays(1), LocalDate.now().plusDays(2), null, "Observação inicial", StatusInternacao.EM_ANDAMENTO);
+        com.hospital.dtos.InternacaoUpdateDTO updateDTO = new com.hospital.dtos.InternacaoUpdateDTO(LocalDate.now().plusDays(5), "Nova observação");
+
+        when(internacaoRepository.findById(10L)).thenReturn(Optional.of(internacao));
+        when(internacaoRepository.save(any(Internacao.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        InternacaoDTO resultado = internacaoService.atualizarInformacoes(10L, updateDTO);
+
+        assertNotNull(resultado);
+        assertEquals("Nova observação", resultado.getObservacoes());
+        assertEquals(LocalDate.now().plusDays(5), resultado.getDataPrevistaAlta());
+    }
 }

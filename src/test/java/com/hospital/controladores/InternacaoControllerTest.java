@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -108,5 +109,41 @@ class InternacaoControllerTest {
         mockMvc.perform(get("/internacoes/em-andamento"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    @DisplayName("Deve cancelar internação e retornar 200 OK")
+    void deveCancelarInternacaoComSucesso() throws Exception {
+        InternacaoDTO response = new InternacaoDTO();
+        response.setId(10L);
+        response.setStatus(StatusInternacao.CANCELADA);
+
+        when(internacaoService.cancelarInternacao(10L)).thenReturn(response);
+
+        mockMvc.perform(put("/internacoes/10/cancelar"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELADA"));
+    }
+
+    @Test
+    @DisplayName("Deve atualizar informações permitidas da internação e retornar 200 OK")
+    void deveAtualizarInformacoesInternacaoComSucesso() throws Exception {
+        com.hospital.dtos.InternacaoUpdateDTO updateDTO = new com.hospital.dtos.InternacaoUpdateDTO(
+                LocalDate.now().plusDays(5), "Nova observação atualizada"
+        );
+
+        InternacaoDTO response = new InternacaoDTO();
+        response.setId(10L);
+        response.setObservacoes("Nova observação atualizada");
+
+        when(internacaoService.atualizarInformacoes(eq(10L), any(com.hospital.dtos.InternacaoUpdateDTO.class)))
+                .thenReturn(response);
+
+        mockMvc.perform(put("/internacoes/10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(10L))
+                .andExpect(jsonPath("$.observacoes").value("Nova observação atualizada"));
     }
 }
