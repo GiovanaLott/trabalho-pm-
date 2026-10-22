@@ -87,6 +87,10 @@ public class Quarto {
         this.situacao = situacao;
     }
 
+    public boolean temVagaDisponivel() {
+        return this.situacao == StatusQuarto.DISPONIVEL && this.ocupacaoAtual < this.capacidadeMaxima;
+    }
+
     public void incrementarOcupacao() {
         this.ocupacaoAtual++;
         if (this.ocupacaoAtual >= this.capacidadeMaxima) {
