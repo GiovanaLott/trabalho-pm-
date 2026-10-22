@@ -50,4 +50,15 @@ public class InternacaoController {
     public ResponseEntity<InternacaoDTO> darAlta(@PathVariable Long id) {
         return ResponseEntity.ok(internacaoService.darAlta(id));
     }
+
+    @PutMapping("/{id}/cancelar")
+    public ResponseEntity<InternacaoDTO> cancelarInternacao(@PathVariable Long id) {
+        return ResponseEntity.ok(internacaoService.cancelarInternacao(id));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<InternacaoDTO> atualizarInformacoes(@PathVariable Long id,
+                                                              @RequestBody com.hospital.dtos.InternacaoUpdateDTO dto) {
+        return ResponseEntity.ok(internacaoService.atualizarInformacoes(id, dto));
+    }
 }
