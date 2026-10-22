@@ -50,8 +50,8 @@ public class InternacaoService {
             throw new RegraNegocioException("O paciente " + paciente.getNome() + " já possui uma internação em andamento.");
         }
 
-        if (quarto.getOcupacaoAtual() >= quarto.getCapacidadeMaxima()) {
-            throw new QuartoLotadoException("O quarto " + quarto.getNumeroIdentificacao() + " atingiu sua capacidade máxima (" + quarto.getCapacidadeMaxima() + " leitos).");
+        if (!quarto.temVagaDisponivel() || quarto.getOcupacaoAtual() >= quarto.getCapacidadeMaxima()) {
+            throw new QuartoLotadoException("O quarto " + quarto.getNumeroIdentificacao() + " não está disponível ou atingiu sua capacidade máxima (" + quarto.getCapacidadeMaxima() + " leitos).");
         }
 
         quarto.incrementarOcupacao();
@@ -75,6 +75,10 @@ public class InternacaoService {
         Internacao internacao = internacaoRepository.findById(internacaoId)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Internação não encontrada com ID: " + internacaoId));
 
+        if (internacao.getStatus() == StatusInternacao.ALTA) {
+            throw new RegraNegocioException("Esta internação já recebeu alta anteriormente.");
+        }
+
         if (internacao.getStatus() != StatusInternacao.EM_ANDAMENTO) {
             throw new RegraNegocioException("Apenas internações em andamento podem receber alta.");
         }
@@ -85,6 +89,51 @@ public class InternacaoService {
         Quarto quarto = internacao.getQuarto();
         quarto.decrementarOcupacao();
         quartoRepository.save(quarto);
+
+        Internacao atualizada = internacaoRepository.save(internacao);
+        return new InternacaoDTO(atualizada);
+    }
+
+    @Transactional
+    public InternacaoDTO cancelarInternacao(Long internacaoId) {
+        Internacao internacao = internacaoRepository.findById(internacaoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Internação não encontrada com ID: " + internacaoId));
+
+        if (internacao.getStatus() == StatusInternacao.CANCELADA) {
+            throw new RegraNegocioException("Esta internação já está cancelada.");
+        }
+
+        if (internacao.getStatus() == StatusInternacao.ALTA) {
+            throw new RegraNegocioException("Não é possível cancelar uma internação que já recebeu alta.");
+        }
+
+        internacao.setStatus(StatusInternacao.CANCELADA);
+
+        Quarto quarto = internacao.getQuarto();
+        quarto.decrementarOcupacao();
+        quartoRepository.save(quarto);
+
+        Internacao atualizada = internacaoRepository.save(internacao);
+        return new InternacaoDTO(atualizada);
+    }
+
+    @Transactional
+    public InternacaoDTO atualizarInformacoes(Long internacaoId, com.hospital.dtos.InternacaoUpdateDTO dto) {
+        Internacao internacao = internacaoRepository.findById(internacaoId)
+                .orElseThrow(() -> new RecursoNaoEncontradoException("Internação não encontrada com ID: " + internacaoId));
+
+        if (internacao.getStatus() != StatusInternacao.EM_ANDAMENTO) {
+            throw new RegraNegocioException("Apenas internações em andamento podem ser atualizadas.");
+        }
+
+        if (dto != null) {
+            if (dto.getObservacoes() != null) {
+                internacao.setObservacoes(dto.getObservacoes());
+            }
+            if (dto.getDataPrevistaAlta() != null) {
+                internacao.setDataPrevistaAlta(dto.getDataPrevistaAlta());
+            }
+        }
 
         Internacao atualizada = internacaoRepository.save(internacao);
         return new InternacaoDTO(atualizada);
