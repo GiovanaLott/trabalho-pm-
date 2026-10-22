@@ -28,8 +28,6 @@ public class PacienteDTO {
     public PacienteDTO() {
     }
 
-<<<<<<< HEAD
-=======
     public PacienteDTO(Long id, String nome, String cpf, LocalDate dataNascimento, String telefone, String endereco, String email) {
         this.id = id;
         this.nome = nome;
@@ -39,8 +37,6 @@ public class PacienteDTO {
         this.endereco = endereco;
         this.email = email;
     }
-
->>>>>>> 62cba83e9f125ecf03af49330526389de2a78646
     public PacienteDTO(Paciente paciente) {
         if (paciente != null) {
             this.id = paciente.getId();
