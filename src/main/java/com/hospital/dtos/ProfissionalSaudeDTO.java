@@ -25,6 +25,18 @@ public class ProfissionalSaudeDTO {
     public ProfissionalSaudeDTO() {
     }
 
+<<<<<<< HEAD
+=======
+    public ProfissionalSaudeDTO(Long id, String nome, String registroProfissional, String especialidade, String telefone, String email) {
+        this.id = id;
+        this.nome = nome;
+        this.registroProfissional = registroProfissional;
+        this.especialidade = especialidade;
+        this.telefone = telefone;
+        this.email = email;
+    }
+
+>>>>>>> 62cba83e9f125ecf03af49330526389de2a78646
     public ProfissionalSaudeDTO(ProfissionalSaude profissional) {
         if (profissional != null) {
             this.id = profissional.getId();

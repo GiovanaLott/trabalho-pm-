@@ -38,6 +38,15 @@
         </dependency>
 
         <dependency>
+<<<<<<< HEAD
+=======
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <dependency>
+>>>>>>> 62cba83e9f125ecf03af49330526389de2a78646
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
             <scope>runtime</scope>
