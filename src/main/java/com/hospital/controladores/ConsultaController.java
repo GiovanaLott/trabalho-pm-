@@ -2,6 +2,8 @@ package com.hospital.controladores;
 
 import com.hospital.dtos.ConsultaDTO;
 import com.hospital.dtos.ConsultaRequestDTO;
+import com.hospital.entidades.ModalidadeAtendimento;
+import com.hospital.entidades.SituacaoConsulta;
 import com.hospital.servicos.ConsultaService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -46,13 +48,50 @@ public class ConsultaController {
         return ResponseEntity.ok(consultaService.buscarPorProfissional(profissionalId));
     }
 
-    @PutMapping("/{id}/cancelar")
-    public ResponseEntity<ConsultaDTO> cancelarConsulta(@PathVariable Long id) {
-        return ResponseEntity.ok(consultaService.cancelarConsulta(id));
+    @GetMapping("/situacao/{situacao}")
+    public ResponseEntity<List<ConsultaDTO>> buscarPorSituacao(@PathVariable SituacaoConsulta situacao) {
+        return ResponseEntity.ok(consultaService.buscarPorSituacao(situacao));
+    }
+
+    @GetMapping("/modalidade/{modalidade}")
+    public ResponseEntity<List<ConsultaDTO>> buscarPorModalidade(@PathVariable ModalidadeAtendimento modalidade) {
+        return ResponseEntity.ok(consultaService.buscarPorModalidade(modalidade));
+    }
+
+    @GetMapping("/emergencias/aguardando")
+    public ResponseEntity<List<ConsultaDTO>> buscarEmergenciasAguardando() {
+        return ResponseEntity.ok(consultaService.buscarEmergenciasAguardando());
+    }
+
+    @PutMapping("/{id}/confirmar")
+    public ResponseEntity<ConsultaDTO> confirmarConsulta(@PathVariable Long id) {
+        return ResponseEntity.ok(consultaService.confirmarConsulta(id));
+    }
+
+    @PutMapping("/{id}/iniciar")
+    public ResponseEntity<ConsultaDTO> iniciarAtendimento(@PathVariable Long id) {
+        return ResponseEntity.ok(consultaService.iniciarAtendimento(id));
+    }
+
+    @PutMapping("/{id}/concluir")
+    public ResponseEntity<ConsultaDTO> concluirConsulta(@PathVariable Long id,
+                                                        @RequestParam(required = false) String observacoesMedicas) {
+        return ResponseEntity.ok(consultaService.finalizarConsulta(id, observacoesMedicas));
     }
 
     @PutMapping("/{id}/finalizar")
-    public ResponseEntity<ConsultaDTO> finalizarConsulta(@PathVariable Long id, @RequestParam(required = false) String observacoesMedicas) {
+    public ResponseEntity<ConsultaDTO> finalizarConsulta(@PathVariable Long id,
+                                                         @RequestParam(required = false) String observacoesMedicas) {
         return ResponseEntity.ok(consultaService.finalizarConsulta(id, observacoesMedicas));
+    }
+
+    @PutMapping("/{id}/nao-compareceu")
+    public ResponseEntity<ConsultaDTO> registrarNaoComparecimento(@PathVariable Long id) {
+        return ResponseEntity.ok(consultaService.registrarNaoComparecimento(id));
+    }
+
+    @PutMapping("/{id}/cancelar")
+    public ResponseEntity<ConsultaDTO> cancelarConsulta(@PathVariable Long id) {
+        return ResponseEntity.ok(consultaService.cancelarConsulta(id));
     }
 }
