@@ -48,12 +48,55 @@ Curso de Engenharia de Software — PUC Minas
 1. Conhecer a data e o horário agendados para o atendimento médico.
 2. Conhecer o paciente associado à consulta.
 3. Conhecer o profissional de saúde responsável pelo atendimento.
-4. Conhecer o status atual da consulta (Agendada, Realizada ou Cancelada) e observações médicas.
+4. Conhecer a situação atual da consulta (Agendada, Confirmada, Em atendimento, Concluída, Cancelada ou Não compareceu).
+5. Gerenciar e validar as transições de situação impedindo alterações incompatíveis.
+6. Fornecer contrato de validação das condições necessárias para a realização do atendimento.
 
 ### Colaborações
 * Paciente
 * ProfissionalSaude
-* StatusConsulta
+* SituacaoConsulta
+* ModalidadeAtendimento
+
+---
+
+**ConsultaRotina**
+
+### Responsabilidades
+1. Representar consultas ambulatoriais de avaliação geral do paciente.
+2. Validar que o motivo da consulta foi devidamente preenchido.
+3. Permitir o registro de observações após a realização da consulta.
+
+### Colaborações
+* Consulta
+* Paciente
+* ProfissionalSaude
+
+---
+
+**ConsultaEspecializada**
+
+### Responsabilidades
+1. Representar consultas direcionadas a especialidades médicas específicas.
+2. Armazenar a especialidade requerida para o atendimento.
+3. Validar se a especialidade do profissional responsável é compatível com a especialidade solicitada.
+
+### Colaborações
+* Consulta
+* ProfissionalSaude
+
+---
+
+**AtendimentoEmergencia**
+
+### Responsabilidades
+1. Representar atendimentos imediatos de pronto-socorro e urgência.
+2. Armazenar e validar a classificação de prioridade (Baixa, Moderada, Alta, Crítica).
+3. Identificar se o atendimento está aguardando avaliação, em atendimento ou já concluído.
+
+### Colaborações
+* Consulta
+* PrioridadeAtendimento
 
 ---
 
@@ -111,3 +154,17 @@ Curso de Engenharia de Software — PUC Minas
 ### Colaborações
 * ProfissionalSaudeService
 * ProfissionalSaudeDTO
+
+---
+
+**ConsultaController**
+
+### Responsabilidades
+1. Receber requisições REST para agendamento, consulta e transição de estados de consultas (`/consultas`).
+2. Expor endpoints de confirmação, início de atendimento, conclusão, cancelamento e não comparecimento.
+3. Permitir filtragem de consultas por situação, modalidade e emergências pendentes.
+
+### Colaborações
+* ConsultaService
+* ConsultaDTO
+* ConsultaRequestDTO

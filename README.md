@@ -8,10 +8,11 @@ Trabalho Prático desenvolvido para a disciplina de **Programação Modular** do
 O **Sistema de Informação Hospitalar** é uma aplicação desenvolvida em **Java** com o framework **Spring Boot**. O objetivo do sistema é fornecer uma API REST robusta, modular e de fácil manutenção para o gerenciamento dos fluxos hospitalares essenciais, incluindo:
 
 * Cadastro e gestão de **pacientes**;
-* Cadastro e gestão de **profissionais de saúde** (médicos, enfermeiros, etc.);
+* Cadastro e gestão de **profissionais de saúde** (médicos clínicos, especialistas e cirurgiões);
 * Gerenciamento e controle de vagas em **quartos/leitos**;
-* Agendamento, cancelamento e conclusão de **consultas ambulatoriais**;
+* Agendamento, confirmação, atendimento e controle de **consultas ambulatoriais e atendimentos de emergência**;
 * Controle de **internações hospitalares** e altas médicas;
+* Gestão de **procedimentos cirúrgicos**;
 * Consulta unificada do **histórico médico / prontuário** dos pacientes;
 * Interface web conceitual (**front-end sem funcionalidade** para a Sprint 1).
 
@@ -67,7 +68,7 @@ src/main/java/com/hospital/
 * Interfaces estendendo `JpaRepository` com queries derivadas e JPQL.
 
 ### 4. Camada de Entidades (`entidades`)
-* Entidades JPA mapeadas para banco relacional com enums para controle de estado.
+* Entidades JPA mapeadas para banco relacional com herança polimórfica (`SINGLE_TABLE`) e enums para controle de estado.
 
 ### 5. Camada de DTOs (`dtos`)
 * Objetos que isolam a camada de dados da camada de apresentação, evitando acoplamento excessivo.
@@ -88,9 +89,16 @@ src/main/java/com/hospital/
 3. **Quartos (`QuartoService`)**:
    * Capacidade máxima de leitos e status (`DISPONIVEL`, `LOTADO`, `MANUTENCAO`).
 
-4. **Consultas (`ConsultaService`)**:
+4. **Consultas e Atendimentos (`ConsultaService`)**:
    * Prevenção de choque de horários (janela mínima de 30 minutos por profissional).
-   * Validação obrigatória da existência do paciente e do médico.
+   * Validação obrigatória da existência do paciente e do médico responsável.
+   * **Modalidades de Atendimento (Herança e Polimorfismo)**:
+     * **Consulta de Rotina**: Destinada à avaliação geral do paciente. Requer motivo da consulta e permite anotações médicas após a realização.
+     * **Consulta Especializada**: Associada a uma especialidade médica. Exige obrigatoriamente que a área de atuação do médico seja compatível com a especialidade solicitada.
+     * **Atendimento de Emergência**: Atendimento imediato classificado por prioridade (`BAIXA`, `MODERADA`, `ALTA`, `CRITICA`). Permite identificar pacientes aguardando avaliação versus já em atendimento ou concluídos.
+   * **Máquina de Situações da Consulta (`SituacaoConsulta`)**:
+     * Estados: `AGENDADA`, `CONFIRMADA`, `EM_ATENDIMENTO`, `CONCLUIDA`, `CANCELADA`, `NAO_COMPARECEU`.
+     * Transições controladas: apenas consultas em atendimento podem ser concluídas; consultas agendadas ou confirmadas podem ser canceladas ou marcadas como não compareceu; consultas finalizadas (`CONCLUIDA`, `CANCELADA`, `NAO_COMPARECEU`) não permitem alteração de status.
 
 5. **Internações (`InternacaoService`)**:
    * Verificação de vaga disponível no quarto antes de internar.
@@ -121,13 +129,20 @@ src/main/java/com/hospital/
 * `GET /quartos/{id}` — Buscar quarto por ID.
 
 ### 📅 Consultas (`/consultas`)
-* `POST /consultas` — Agendar nova consulta médica.
+* `POST /consultas` — Agendar nova consulta médica (rotina, especializada ou emergência).
 * `GET /consultas` — Listar todas as consultas.
 * `GET /consultas/{id}` — Buscar consulta por ID.
 * `GET /consultas/paciente/{pacienteId}` — Listar consultas de um paciente.
 * `GET /consultas/profissional/{profissionalId}` — Listar consultas de um profissional.
+* `GET /consultas/situacao/{situacao}` — Filtrar consultas por situação (`AGENDADA`, `CONFIRMADA`, `EM_ATENDIMENTO`, etc.).
+* `GET /consultas/modalidade/{modalidade}` — Filtrar consultas por modalidade (`ROTINA`, `ESPECIALIZADA`, `EMERGENCIA`).
+* `GET /consultas/emergencias/aguardando` — Listar atendimentos de emergência aguardando avaliação médica.
+* `PUT /consultas/{id}/confirmar` — Confirmar presença na consulta agendada.
+* `PUT /consultas/{id}/iniciar` — Iniciar atendimento médico (passa para `EM_ATENDIMENTO`).
+* `PUT /consultas/{id}/concluir` — Concluir atendimento médico registrando observações clínicas.
+* `PUT /consultas/{id}/finalizar` — Alias/compatibilidade para conclusão do atendimento.
+* `PUT /consultas/{id}/nao-compareceu` — Registrar não comparecimento do paciente.
 * `PUT /consultas/{id}/cancelar` — Cancelar uma consulta.
-* `PUT /consultas/{id}/finalizar` — Concluir atendimento com observações médicas.
 
 ### 🏥 Internações (`/internacoes`)
 * `POST /internacoes` — Registrar internação hospitalar.

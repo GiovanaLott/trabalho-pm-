@@ -1,4 +1,4 @@
-# Diagrama de Classes — Sprint 1
+# Diagrama de Classes — Sprint 2
 
 Trabalho Prático de Programação Modular — Sistema de Informação Hospitalar  
 Curso de Engenharia de Software — PUC Minas
@@ -11,11 +11,29 @@ Curso de Engenharia de Software — PUC Minas
 classDiagram
     direction TB
 
-    class StatusConsulta {
+    class SituacaoConsulta {
         <<enumeration>>
         AGENDADA
-        REALIZADA
+        CONFIRMADA
+        EM_ATENDIMENTO
+        CONCLUIDA
         CANCELADA
+        NAO_COMPARECEU
+    }
+
+    class ModalidadeAtendimento {
+        <<enumeration>>
+        ROTINA
+        ESPECIALIZADA
+        EMERGENCIA
+    }
+
+    class PrioridadeAtendimento {
+        <<enumeration>>
+        BAIXA
+        MODERADA
+        ALTA
+        CRITICA
     }
 
     class StatusInternacao {
@@ -92,20 +110,51 @@ classDiagram
     }
 
     class Consulta {
+        <<abstract>>
         -Long id
         -Paciente paciente
         -ProfissionalSaude profissional
         -LocalDateTime dataHora
-        -StatusConsulta status
-        -String observacoes
+        -String motivoConsulta
+        -String observacoesMedicas
+        -SituacaoConsulta situacao
         +getId() Long
         +getPaciente() Paciente
         +getProfissional() ProfissionalSaude
         +getDataHora() LocalDateTime
-        +getStatus() StatusConsulta
-        +setStatus(StatusConsulta status) void
-        +getObservacoes() String
-        +setObservacoes(String obs) void
+        +getSituacao() SituacaoConsulta
+        +getModalidade() ModalidadeAtendimento
+        +validarCondicoesAtendimento() void
+        +transitarPara(SituacaoConsulta nova) void
+        +confirmar() void
+        +iniciarAtendimento() void
+        +concluir(String obs) void
+        +cancelar() void
+        +registrarNaoComparecimento() void
+    }
+
+    class ConsultaRotina {
+        +getModalidade() ModalidadeAtendimento
+        +validarCondicoesAtendimento() void
+    }
+
+    class ConsultaEspecializada {
+        -String especialidade
+        +getEspecialidade() String
+        +setEspecialidade(String esp) void
+        +getModalidade() ModalidadeAtendimento
+        +validarCondicoesAtendimento() void
+    }
+
+    class AtendimentoEmergencia {
+        -PrioridadeAtendimento prioridade
+        +getPrioridade() PrioridadeAtendimento
+        +setPrioridade(PrioridadeAtendimento p) void
+        +getModalidade() ModalidadeAtendimento
+        +validarCondicoesAtendimento() void
+        +isAguardandoAvaliacao() boolean
+        +isEmAtendimento() boolean
+        +isConcluido() boolean
     }
 
     class Internacao {
@@ -127,12 +176,18 @@ classDiagram
         +getMotivo() String
     }
 
+    Consulta <|-- ConsultaRotina : herda
+    Consulta <|-- ConsultaEspecializada : herda
+    Consulta <|-- AtendimentoEmergencia : herda
+
     Paciente "1" -- "0..*" Consulta : possui
     ProfissionalSaude "1" -- "0..*" Consulta : realiza
     Paciente "1" -- "0..*" Internacao : internado em
     Quarto "1" -- "0..*" Internacao : aloca
 
-    Consulta --> StatusConsulta
+    Consulta --> SituacaoConsulta
+    Consulta --> ModalidadeAtendimento
+    AtendimentoEmergencia --> PrioridadeAtendimento
     Internacao --> StatusInternacao
     Quarto --> StatusQuarto
 ```
@@ -145,10 +200,26 @@ classDiagram
 @startuml
 skinparam classAttributeIconSize 0
 
-enum StatusConsulta {
+enum SituacaoConsulta {
   AGENDADA
-  REALIZADA
+  CONFIRMADA
+  EM_ATENDIMENTO
+  CONCLUIDA
   CANCELADA
+  NAO_COMPARECEU
+}
+
+enum ModalidadeAtendimento {
+  ROTINA
+  ESPECIALIZADA
+  EMERGENCIA
+}
+
+enum PrioridadeAtendimento {
+  BAIXA
+  MODERADA
+  ALTA
+  CRITICA
 }
 
 enum StatusInternacao {
@@ -222,21 +293,51 @@ class Quarto {
   + decrementarOcupacao(): void
 }
 
-class Consulta {
+abstract class Consulta {
   - id: Long
   - paciente: Paciente
   - profissional: ProfissionalSaude
   - dataHora: LocalDateTime
-  - status: StatusConsulta
-  - observacoes: String
+  - motivoConsulta: String
+  - observacoesMedicas: String
+  - situacao: SituacaoConsulta
   + getId(): Long
   + getPaciente(): Paciente
   + getProfissional(): ProfissionalSaude
   + getDataHora(): LocalDateTime
-  + getStatus(): StatusConsulta
-  + setStatus(status: StatusConsulta): void
-  + getObservacoes(): String
-  + setObservacoes(obs: String): void
+  + getSituacao(): SituacaoConsulta
+  + getModalidade(): ModalidadeAtendimento
+  + validarCondicoesAtendimento(): void
+  + transitarPara(nova: SituacaoConsulta): void
+  + confirmar(): void
+  + iniciarAtendimento(): void
+  + concluir(obs: String): void
+  + cancelar(): void
+  + registrarNaoComparecimento(): void
+}
+
+class ConsultaRotina {
+  + getModalidade(): ModalidadeAtendimento
+  + validarCondicoesAtendimento(): void
+}
+
+class ConsultaEspecializada {
+  - especialidade: String
+  + getEspecialidade(): String
+  + setEspecialidade(esp: String): void
+  + getModalidade(): ModalidadeAtendimento
+  + validarCondicoesAtendimento(): void
+}
+
+class AtendimentoEmergencia {
+  - prioridade: PrioridadeAtendimento
+  + getPrioridade(): PrioridadeAtendimento
+  + setPrioridade(p: PrioridadeAtendimento): void
+  + getModalidade(): ModalidadeAtendimento
+  + validarCondicoesAtendimento(): void
+  + isAguardandoAvaliacao(): boolean
+  + isEmAtendimento(): boolean
+  + isConcluido(): boolean
 }
 
 class Internacao {
@@ -258,12 +359,18 @@ class Internacao {
   + getMotivo(): String
 }
 
+Consulta <|-- ConsultaRotina
+Consulta <|-- ConsultaEspecializada
+Consulta <|-- AtendimentoEmergencia
+
 Paciente "1" -- "0..*" Consulta : possui >
 ProfissionalSaude "1" -- "0..*" Consulta : realiza >
 Paciente "1" -- "0..*" Internacao : internado em >
 Quarto "1" -- "0..*" Internacao : aloca >
 
-Consulta --> StatusConsulta
+Consulta --> SituacaoConsulta
+Consulta --> ModalidadeAtendimento
+AtendimentoEmergencia --> PrioridadeAtendimento
 Internacao --> StatusInternacao
 Quarto --> StatusQuarto
 
@@ -282,10 +389,14 @@ Quarto --> StatusQuarto
    * Um `ProfissionalSaude` pode atender 0 ou várias consultas ao longo do tempo.
    * Toda `Consulta` é conduzida por exatamente 1 profissional responsável.
 
-3. **Paciente — Internacao (1 para 0..*)**:
+3. **Herança de Modalidades de Atendimento**:
+   * `Consulta` é a classe base abstrata/generalizada.
+   * `ConsultaRotina`, `ConsultaEspecializada` e `AtendimentoEmergencia` estendem `Consulta`, implementando regras de validação polimórficas (`validarCondicoesAtendimento()`).
+
+4. **Paciente — Internacao (1 para 0..*)**:
    * Um `Paciente` pode possuir 0 ou mais internações no seu histórico clínico.
    * Cada registro de `Internacao` refere-se a exatamente 1 paciente.
 
-4. **Quarto — Internacao (1 para 0..*)**:
+5. **Quarto — Internacao (1 para 0..*)**:
    * Um `Quarto` pode receber múltiplas internações ao longo de sua vida útil, respeitando a capacidade máxima simultânea (`ocupacaoAtual <= capacidadeMaxima`).
    * Cada `Internacao` está associada a exatamente 1 quarto.
