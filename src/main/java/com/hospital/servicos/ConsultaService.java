@@ -2,10 +2,7 @@ package com.hospital.servicos;
 
 import com.hospital.dtos.ConsultaDTO;
 import com.hospital.dtos.ConsultaRequestDTO;
-import com.hospital.entidades.Consulta;
-import com.hospital.entidades.Paciente;
-import com.hospital.entidades.ProfissionalSaude;
-import com.hospital.entidades.StatusConsulta;
+import com.hospital.entidades.*;
 import com.hospital.excecoes.ChoqueHorarioException;
 import com.hospital.excecoes.RecursoNaoEncontradoException;
 import com.hospital.excecoes.RegraNegocioException;
@@ -40,7 +37,10 @@ public class ConsultaService {
             throw new RegraNegocioException("Data e hora da consulta são obrigatórias.");
         }
 
-        if (dto.getDataHora().isBefore(LocalDateTime.now())) {
+        ModalidadeAtendimento modalidade = dto.getModalidade() != null ? dto.getModalidade() : ModalidadeAtendimento.ROTINA;
+
+        // Atendimentos de emergência podem ser registrados no momento atual
+        if (modalidade != ModalidadeAtendimento.EMERGENCIA && dto.getDataHora().isBefore(LocalDateTime.now())) {
             throw new RegraNegocioException("Não é possível agendar consultas para datas passadas.");
         }
 
@@ -52,16 +52,35 @@ public class ConsultaService {
 
         validarChoqueHorarioMedico(profissional.getId(), dto.getDataHora());
 
-        Consulta consulta = new Consulta();
+        Consulta consulta = criarInstanciaPorModalidade(modalidade, dto);
         consulta.setPaciente(paciente);
         consulta.setProfissional(profissional);
         consulta.setDataHora(dto.getDataHora());
         consulta.setMotivoConsulta(dto.getMotivoConsulta());
         consulta.setObservacoesMedicas(dto.getObservacoesMedicas());
-        consulta.setStatus(StatusConsulta.AGENDADA);
+        consulta.setSituacao(SituacaoConsulta.AGENDADA);
+
+        // Validação polimórfica específica de cada modalidade
+        consulta.validarCondicoesAtendimento();
 
         Consulta consultaSalva = consultaRepository.save(consulta);
         return new ConsultaDTO(consultaSalva);
+    }
+
+    private Consulta criarInstanciaPorModalidade(ModalidadeAtendimento modalidade, ConsultaRequestDTO dto) {
+        return switch (modalidade) {
+            case ESPECIALIZADA -> {
+                ConsultaEspecializada esp = new ConsultaEspecializada();
+                esp.setEspecialidade(dto.getEspecialidade());
+                yield esp;
+            }
+            case EMERGENCIA -> {
+                AtendimentoEmergencia emergencia = new AtendimentoEmergencia();
+                emergencia.setPrioridade(dto.getPrioridade());
+                yield emergencia;
+            }
+            case ROTINA -> new ConsultaRotina();
+        };
     }
 
     @Transactional(readOnly = true)
@@ -73,8 +92,7 @@ public class ConsultaService {
 
     @Transactional(readOnly = true)
     public ConsultaDTO buscarPorId(Long id) {
-        Consulta consulta = consultaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Consulta não encontrada com ID: " + id));
+        Consulta consulta = buscarEntidadePorId(id);
         return new ConsultaDTO(consulta);
     }
 
@@ -92,36 +110,71 @@ public class ConsultaService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
+    public List<ConsultaDTO> buscarPorSituacao(SituacaoConsulta situacao) {
+        return consultaRepository.findBySituacao(situacao).stream()
+                .map(ConsultaDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConsultaDTO> buscarPorModalidade(ModalidadeAtendimento modalidade) {
+        Class<? extends Consulta> tipo = switch (modalidade) {
+            case ROTINA -> ConsultaRotina.class;
+            case ESPECIALIZADA -> ConsultaEspecializada.class;
+            case EMERGENCIA -> AtendimentoEmergencia.class;
+        };
+
+        return consultaRepository.findByTipoConsulta(tipo).stream()
+                .map(ConsultaDTO::new)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<ConsultaDTO> buscarEmergenciasAguardando() {
+        return consultaRepository.findEmergenciasAguardandoAvaliacao().stream()
+                .map(ConsultaDTO::new)
+                .collect(Collectors.toList());
+    }
+
     @Transactional
-    public ConsultaDTO cancelarConsulta(Long id) {
-        Consulta consulta = consultaRepository.findById(id)
-                .orElseThrow(() -> new RecursoNaoEncontradoException("Consulta não encontrada com ID: " + id));
+    public ConsultaDTO confirmarConsulta(Long id) {
+        Consulta consulta = buscarEntidadePorId(id);
+        consulta.confirmar();
+        return new ConsultaDTO(consultaRepository.save(consulta));
+    }
 
-        if (consulta.getStatus() == StatusConsulta.CANCELADA) {
-            throw new RegraNegocioException("Esta consulta já está cancelada.");
-        }
-
-        consulta.setStatus(StatusConsulta.CANCELADA);
-        Consulta consultaAtualizada = consultaRepository.save(consulta);
-        return new ConsultaDTO(consultaAtualizada);
+    @Transactional
+    public ConsultaDTO iniciarAtendimento(Long id) {
+        Consulta consulta = buscarEntidadePorId(id);
+        consulta.iniciarAtendimento();
+        return new ConsultaDTO(consultaRepository.save(consulta));
     }
 
     @Transactional
     public ConsultaDTO finalizarConsulta(Long id, String observacoesMedicas) {
-        Consulta consulta = consultaRepository.findById(id)
+        Consulta consulta = buscarEntidadePorId(id);
+        consulta.concluir(observacoesMedicas);
+        return new ConsultaDTO(consultaRepository.save(consulta));
+    }
+
+    @Transactional
+    public ConsultaDTO cancelarConsulta(Long id) {
+        Consulta consulta = buscarEntidadePorId(id);
+        consulta.cancelar();
+        return new ConsultaDTO(consultaRepository.save(consulta));
+    }
+
+    @Transactional
+    public ConsultaDTO registrarNaoComparecimento(Long id) {
+        Consulta consulta = buscarEntidadePorId(id);
+        consulta.registrarNaoComparecimento();
+        return new ConsultaDTO(consultaRepository.save(consulta));
+    }
+
+    private Consulta buscarEntidadePorId(Long id) {
+        return consultaRepository.findById(id)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Consulta não encontrada com ID: " + id));
-
-        if (consulta.getStatus() == StatusConsulta.CANCELADA) {
-            throw new RegraNegocioException("Não é possível finalizar uma consulta cancelada.");
-        }
-
-        consulta.setStatus(StatusConsulta.REALIZADA);
-        if (observacoesMedicas != null && !observacoesMedicas.trim().isEmpty()) {
-            consulta.setObservacoesMedicas(observacoesMedicas);
-        }
-
-        Consulta consultaSalva = consultaRepository.save(consulta);
-        return new ConsultaDTO(consultaSalva);
     }
 
     private void validarChoqueHorarioMedico(Long profissionalId, LocalDateTime dataHora) {
