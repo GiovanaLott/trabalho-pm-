@@ -1,6 +1,7 @@
 package com.hospital.repositorios;
 
 import com.hospital.entidades.Consulta;
+import com.hospital.entidades.SituacaoConsulta;
 import com.hospital.entidades.StatusConsulta;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -17,13 +18,22 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
 
     List<Consulta> findByProfissionalId(Long profissionalId);
 
-    List<Consulta> findByStatus(StatusConsulta status);
+    List<Consulta> findBySituacao(SituacaoConsulta situacao);
 
-    boolean existsByProfissionalIdAndDataHoraAndStatusNot(Long profissionalId, LocalDateTime dataHora, StatusConsulta status);
+    @Query("SELECT c FROM Consulta c WHERE TYPE(c) = com.hospital.entidades.AtendimentoEmergencia AND c.situacao IN (com.hospital.entidades.SituacaoConsulta.AGENDADA, com.hospital.entidades.SituacaoConsulta.CONFIRMADA)")
+    List<Consulta> findEmergenciasAguardandoAvaliacao();
 
-    @Query("SELECT c FROM Consulta c WHERE c.profissional.id = :profissionalId AND c.status <> :statusIgnorado AND c.dataHora BETWEEN :inicio AND :fim")
+    @Query("SELECT c FROM Consulta c WHERE TYPE(c) = :tipo")
+    List<Consulta> findByTipoConsulta(@Param("tipo") Class<? extends Consulta> tipo);
+
+    @Query("SELECT c FROM Consulta c WHERE c.profissional.id = :profissionalId AND c.situacao <> com.hospital.entidades.SituacaoConsulta.CANCELADA AND c.dataHora BETWEEN :inicio AND :fim")
     List<Consulta> findConflitoHorarioProfissional(@Param("profissionalId") Long profissionalId,
                                                    @Param("inicio") LocalDateTime inicio,
                                                    @Param("fim") LocalDateTime fim,
                                                    @Param("statusIgnorado") StatusConsulta statusIgnorado);
+
+    @Query("SELECT c FROM Consulta c WHERE c.profissional.id = :profissionalId AND c.situacao <> com.hospital.entidades.SituacaoConsulta.CANCELADA AND c.dataHora BETWEEN :inicio AND :fim")
+    List<Consulta> findConflitoHorarioProfissional(@Param("profissionalId") Long profissionalId,
+                                                   @Param("inicio") LocalDateTime inicio,
+                                                   @Param("fim") LocalDateTime fim);
 }
