@@ -2,6 +2,11 @@ package com.hospital.entidades;
 
 public enum StatusConsulta {
     AGENDADA,
-    REALIZADA,
-    CANCELADA
+    CONFIRMADA,
+    EM_ATENDIMENTO,
+    CONCLUIDA,
+    CANCELADA,
+    NAO_COMPARECEU,
+    @Deprecated
+    REALIZADA
 }
