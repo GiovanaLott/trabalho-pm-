@@ -1,7 +1,6 @@
 package com.hospital.dtos;
 
-import com.hospital.entidades.Consulta;
-import com.hospital.entidades.StatusConsulta;
+import com.hospital.entidades.*;
 import java.time.LocalDateTime;
 
 public class ConsultaDTO {
@@ -12,7 +11,12 @@ public class ConsultaDTO {
     private LocalDateTime dataHora;
     private String motivoConsulta;
     private String observacoesMedicas;
+    private SituacaoConsulta situacao;
     private StatusConsulta status;
+    private ModalidadeAtendimento modalidade;
+    private String especialidade;
+    private PrioridadeAtendimento prioridade;
+    private Boolean aguardandoAvaliacao;
 
     public ConsultaDTO() {
     }
@@ -25,7 +29,16 @@ public class ConsultaDTO {
             this.dataHora = consulta.getDataHora();
             this.motivoConsulta = consulta.getMotivoConsulta();
             this.observacoesMedicas = consulta.getObservacoesMedicas();
+            this.situacao = consulta.getSituacao();
             this.status = consulta.getStatus();
+            this.modalidade = consulta.getModalidade();
+
+            if (consulta instanceof ConsultaEspecializada specialized) {
+                this.especialidade = specialized.getEspecialidade();
+            } else if (consulta instanceof AtendimentoEmergencia emergencia) {
+                this.prioridade = emergencia.getPrioridade();
+                this.aguardandoAvaliacao = emergencia.isAguardandoAvaliacao();
+            }
         }
     }
 
@@ -77,11 +90,67 @@ public class ConsultaDTO {
         this.observacoesMedicas = observacoesMedicas;
     }
 
+    public SituacaoConsulta getSituacao() {
+        return situacao;
+    }
+
+    public void setSituacao(SituacaoConsulta situacao) {
+        this.situacao = situacao;
+        if (situacao != null) {
+            try {
+                this.status = StatusConsulta.valueOf(situacao.name());
+            } catch (Exception ignored) {
+            }
+        }
+    }
+
     public StatusConsulta getStatus() {
         return status;
     }
 
     public void setStatus(StatusConsulta status) {
         this.status = status;
+        if (status != null) {
+            if (status == StatusConsulta.REALIZADA) {
+                this.situacao = SituacaoConsulta.CONCLUIDA;
+            } else {
+                try {
+                    this.situacao = SituacaoConsulta.valueOf(status.name());
+                } catch (Exception ignored) {
+                }
+            }
+        }
+    }
+
+    public ModalidadeAtendimento getModalidade() {
+        return modalidade;
+    }
+
+    public void setModalidade(ModalidadeAtendimento modalidade) {
+        this.modalidade = modalidade;
+    }
+
+    public String getEspecialidade() {
+        return especialidade;
+    }
+
+    public void setEspecialidade(String especialidade) {
+        this.especialidade = especialidade;
+    }
+
+    public PrioridadeAtendimento getPrioridade() {
+        return prioridade;
+    }
+
+    public void setPrioridade(PrioridadeAtendimento prioridade) {
+        this.prioridade = prioridade;
+    }
+
+    public Boolean getAguardandoAvaliacao() {
+        return aguardandoAvaliacao;
+    }
+
+    public void setAguardandoAvaliacao(Boolean aguardandoAvaliacao) {
+        this.aguardandoAvaliacao = aguardandoAvaliacao;
     }
 }

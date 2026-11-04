@@ -1,6 +1,7 @@
 package com.hospital.dtos;
 
-import jakarta.validation.constraints.NotBlank;
+import com.hospital.entidades.ModalidadeAtendimento;
+import com.hospital.entidades.PrioridadeAtendimento;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 
@@ -15,20 +16,41 @@ public class ConsultaRequestDTO {
     @NotNull(message = "A data e hora da consulta são obrigatórias")
     private LocalDateTime dataHora;
 
-    @NotBlank(message = "O motivo da consulta é obrigatório")
     private String motivoConsulta;
 
     private String observacoesMedicas;
 
+    private ModalidadeAtendimento modalidade = ModalidadeAtendimento.ROTINA;
+
+    private String especialidade;
+
+    private PrioridadeAtendimento prioridade;
+
     public ConsultaRequestDTO() {
     }
 
-    public ConsultaRequestDTO(Long pacienteId, Long profissionalId, LocalDateTime dataHora, String motivoConsulta, String observacoesMedicas) {
+    public ConsultaRequestDTO(Long pacienteId, Long profissionalId, LocalDateTime dataHora,
+                              String motivoConsulta, String observacoesMedicas) {
         this.pacienteId = pacienteId;
         this.profissionalId = profissionalId;
         this.dataHora = dataHora;
         this.motivoConsulta = motivoConsulta;
         this.observacoesMedicas = observacoesMedicas;
+        this.modalidade = ModalidadeAtendimento.ROTINA;
+    }
+
+    public ConsultaRequestDTO(Long pacienteId, Long profissionalId, LocalDateTime dataHora,
+                              String motivoConsulta, String observacoesMedicas,
+                              ModalidadeAtendimento modalidade, String especialidade,
+                              PrioridadeAtendimento prioridade) {
+        this.pacienteId = pacienteId;
+        this.profissionalId = profissionalId;
+        this.dataHora = dataHora;
+        this.motivoConsulta = motivoConsulta;
+        this.observacoesMedicas = observacoesMedicas;
+        this.modalidade = modalidade != null ? modalidade : ModalidadeAtendimento.ROTINA;
+        this.especialidade = especialidade;
+        this.prioridade = prioridade;
     }
 
     public Long getPacienteId() {
@@ -69,5 +91,29 @@ public class ConsultaRequestDTO {
 
     public void setObservacoesMedicas(String observacoesMedicas) {
         this.observacoesMedicas = observacoesMedicas;
+    }
+
+    public ModalidadeAtendimento getModalidade() {
+        return modalidade;
+    }
+
+    public void setModalidade(ModalidadeAtendimento modalidade) {
+        this.modalidade = modalidade;
+    }
+
+    public String getEspecialidade() {
+        return especialidade;
+    }
+
+    public void setEspecialidade(String especialidade) {
+        this.especialidade = especialidade;
+    }
+
+    public PrioridadeAtendimento getPrioridade() {
+        return prioridade;
+    }
+
+    public void setPrioridade(PrioridadeAtendimento prioridade) {
+        this.prioridade = prioridade;
     }
 }
