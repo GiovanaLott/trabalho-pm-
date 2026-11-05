@@ -34,3 +34,6 @@ build/
 ### Logs & Temp ###
 *.log
 *.tmp
+.playwright-cli/
+.taste-skill/
+/tmp/

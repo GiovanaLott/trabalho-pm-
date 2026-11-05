@@ -1,0 +1,66 @@
+classDiagram
+direction LR
+class Paciente {
+  +Long id
+  +String nome
+  +String cpf
+}
+class ProfissionalSaude {
+  <<abstract>>
+  +Long id
+  +String nome
+  +String registroProfissional
+}
+class ClinicoGeral
+class Especialista {
+  +String especialidade
+}
+class Cirurgiao
+ProfissionalSaude <|-- ClinicoGeral
+ProfissionalSaude <|-- Especialista
+ProfissionalSaude <|-- Cirurgiao
+class Atendimento {
+  <<MappedSuperclass>>
+  +Long id
+  +LocalDateTime inicioPrevisto
+  +Integer duracaoMinutos
+}
+class Consulta {
+  <<abstract>>
+  +SituacaoConsulta situacao
+}
+class ConsultaRotina
+class ConsultaEspecializada
+class AtendimentoEmergencia {
+  +PrioridadeAtendimento prioridade
+}
+class ProcedimentoCirurgico {
+  +String tipo
+  +LocalDateTime inicioEfetivo
+  +LocalDateTime fimEfetivo
+}
+Atendimento <|-- Consulta
+Atendimento <|-- ProcedimentoCirurgico
+Consulta <|-- ConsultaRotina
+Consulta <|-- ConsultaEspecializada
+Consulta <|-- AtendimentoEmergencia
+class Internacao {
+  +StatusInternacao status
+}
+class Quarto {
+  <<abstract>>
+  +Integer capacidadeMaxima
+  +Integer ocupacaoAtual
+}
+class Enfermaria
+class Apartamento
+class UTI
+class QuartoIsolamento
+Quarto <|-- Enfermaria
+Quarto <|-- Apartamento
+Quarto <|-- UTI
+Quarto <|-- QuartoIsolamento
+Paciente "1" --> "0..*" Atendimento
+ProfissionalSaude "1" --> "0..*" Atendimento
+Paciente "1" --> "0..*" Internacao
+Quarto "1" --> "0..*" Internacao

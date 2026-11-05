@@ -73,3 +73,50 @@ ALTER TABLE consultas ALTER COLUMN situacao SET NOT NULL;
 ALTER TABLE consultas DROP CONSTRAINT IF EXISTS consultas_status_check;
 ALTER TABLE consultas DROP CONSTRAINT IF EXISTS consultas_situacao_check;
 ALTER TABLE consultas DROP CONSTRAINT IF EXISTS consultas_modalidade_check;
+
+-- -----------------------------------------------------------------------------
+-- PROFISSIONAIS: hierarquia SINGLE_TABLE
+-- -----------------------------------------------------------------------------
+ALTER TABLE profissionais_saude ADD COLUMN IF NOT EXISTS categoria VARCHAR(30);
+
+-- IMPORTANTE: preencher explicitamente a categoria dos registros legados antes
+-- de tornar a coluna obrigatória. Não inferir pelo texto da especialidade.
+-- Exemplos (substitua pelos registros reais aprovados pelo grupo):
+-- UPDATE profissionais_saude SET categoria = 'CLINICO_GERAL' WHERE id IN (...);
+-- UPDATE profissionais_saude SET categoria = 'ESPECIALISTA' WHERE id IN (...);
+-- UPDATE profissionais_saude SET categoria = 'CIRURGIAO' WHERE id IN (...);
+
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM profissionais_saude WHERE categoria IS NULL) THEN
+        ALTER TABLE profissionais_saude ALTER COLUMN categoria SET NOT NULL;
+    ELSE
+        RAISE NOTICE 'Há profissionais legados sem categoria. Consulte docs/duvidas.md antes de concluir a migração.';
+    END IF;
+END $$;
+ALTER TABLE profissionais_saude DROP CONSTRAINT IF EXISTS profissionais_saude_categoria_check;
+
+-- -----------------------------------------------------------------------------
+-- ATENDIMENTOS: intervalo previsto e dados cirúrgicos completos
+-- -----------------------------------------------------------------------------
+ALTER TABLE consultas ADD COLUMN IF NOT EXISTS inicio_previsto TIMESTAMP;
+ALTER TABLE consultas ADD COLUMN IF NOT EXISTS duracao_minutos INTEGER;
+UPDATE consultas SET inicio_previsto = data_hora WHERE inicio_previsto IS NULL;
+UPDATE consultas SET duracao_minutos = 30 WHERE duracao_minutos IS NULL;
+ALTER TABLE consultas ALTER COLUMN duracao_minutos SET NOT NULL;
+
+ALTER TABLE procedimentos_cirurgicos ADD COLUMN IF NOT EXISTS inicio_previsto TIMESTAMP;
+ALTER TABLE procedimentos_cirurgicos ADD COLUMN IF NOT EXISTS duracao_minutos INTEGER;
+ALTER TABLE procedimentos_cirurgicos ADD COLUMN IF NOT EXISTS tipo_procedimento VARCHAR(100);
+ALTER TABLE procedimentos_cirurgicos ADD COLUMN IF NOT EXISTS inicio_efetivo TIMESTAMP;
+ALTER TABLE procedimentos_cirurgicos ADD COLUMN IF NOT EXISTS fim_efetivo TIMESTAMP;
+UPDATE procedimentos_cirurgicos
+   SET inicio_previsto = data_cirurgia + horario_inicio_previsto
+ WHERE inicio_previsto IS NULL;
+UPDATE procedimentos_cirurgicos SET duracao_minutos = 60 WHERE duracao_minutos IS NULL;
+ALTER TABLE procedimentos_cirurgicos ALTER COLUMN duracao_minutos SET NOT NULL;
+
+-- O tipo de cirurgias legadas deve ser preenchido pelo grupo com o valor clínico
+-- correto. Novos procedimentos já exigem esse campo na API.
+
+COMMIT;
