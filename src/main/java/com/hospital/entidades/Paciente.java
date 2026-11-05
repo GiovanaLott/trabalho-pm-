@@ -2,6 +2,7 @@ package com.hospital.entidades;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.Objects;
 
 @Entity
@@ -41,6 +42,31 @@ public class Paciente {
         this.telefone = telefone;
         this.endereco = endereco;
         this.email = email;
+    }
+
+    /**
+     * Atualiza os dados cadastrais do paciente. O CPF é tratado à parte porque exige
+     * validação de unicidade, que depende do repositório (camada de serviço).
+     */
+    public void atualizarDados(String nome, LocalDate dataNascimento, String telefone, String endereco, String email) {
+        this.nome = nome;
+        this.dataNascimento = dataNascimento;
+        this.telefone = telefone;
+        this.endereco = endereco;
+        this.email = email;
+    }
+
+    /** Idade em anos completos na data de hoje (ou nula se a data de nascimento não foi informada). */
+    public Integer getIdade() {
+        if (dataNascimento == null) {
+            return null;
+        }
+        return Period.between(dataNascimento, LocalDate.now()).getYears();
+    }
+
+    public boolean isMenorDeIdade() {
+        Integer idade = getIdade();
+        return idade != null && idade < 18;
     }
 
     public Long getId() {
