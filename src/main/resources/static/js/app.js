@@ -1,46 +1,83 @@
-document.addEventListener('DOMContentLoaded', () => {
-    const navLinks = document.querySelectorAll('.menu-link');
-    const tabContents = document.querySelectorAll('.tab-content');
-    const topbarTitle = document.getElementById('topbar-title');
+const state={pacientes:[],profissionais:[],consultas:[],internacoes:[],quartos:[]};
+const $=(selector,root=document)=>root.querySelector(selector);
+const $$=(selector,root=document)=>[...root.querySelectorAll(selector)];
+const esc=value=>String(value??'').replace(/[&<>"]/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[char]));
+const labels={CLINICO_GERAL:'Clínico geral',ESPECIALISTA:'Especialista',CIRURGIAO:'Cirurgião',ROTINA:'Rotina',ESPECIALIZADA:'Especializada',EMERGENCIA:'Emergência',EM_ANDAMENTO:'Em andamento',NAO_COMPARECEU:'Não compareceu'};
+const label=value=>labels[value]||String(value??'—').replaceAll('_',' ').toLowerCase().replace(/^./,c=>c.toUpperCase());
+const formatDate=value=>value?new Intl.DateTimeFormat('pt-BR',{dateStyle:'short'}).format(new Date(`${value}`.length===10?`${value}T12:00:00`:value)):'—';
+const formatDateTime=value=>value?new Intl.DateTimeFormat('pt-BR',{dateStyle:'short',timeStyle:'short'}).format(new Date(value)):'—';
+const activeStatus=value=>!['CANCELADA','CONCLUIDA','ALTA','NAO_COMPARECEU'].includes(value);
+const pill=value=>`<span class="pill ${['ALTA','CONCLUIDA','DISPONIVEL'].includes(value)?'positive':['CANCELADA','NAO_COMPARECEU'].includes(value)?'negative':['EM_MANUTENCAO'].includes(value)?'warning':''}">${esc(label(value))}</span>`;
 
-    const tabTitles = {
-        'dashboard': 'Visão Geral do Hospital',
-        'pacientes': 'Gerenciamento de Pacientes',
-        'profissionais': 'Gerenciamento de Profissionais da Saúde',
-        'consultas': 'Agendamento e Controle de Consultas',
-        'internacoes': 'Controle de Internações Hospitalares',
-        'quartos': 'Gerenciamento de Quartos e Leitos',
-        'historico': 'Histórico Médico e Prontuário Consolidado'
-    };
+async function api(path,options={}){
+  path=path.replace('/historicos/','/historico/');
+  const response=await fetch(path,{...options,headers:{'Content-Type':'application/json',...(options.headers||{})}});
+  const text=await response.text();
+  const body=text?JSON.parse(text):null;
+  if(!response.ok){const details=body?.errors?Object.values(body.errors).join(' · '):body?.message;throw new Error(details||`Falha HTTP ${response.status}`)}
+  return body;
+}
 
-    navLinks.forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const targetTab = link.getAttribute('data-tab');
+function toast(message,error=false){const el=$('#toast');el.textContent=message;el.className=`toast${error?' error':''}`;el.hidden=false;clearTimeout(toast.timer);toast.timer=setTimeout(()=>el.hidden=true,4500)}
+function formData(form){return Object.fromEntries(new FormData(form).entries())}
+function clean(payload){return Object.fromEntries(Object.entries(payload).filter(([,value])=>value!==''&&value!==null&&value!==undefined))}
+function resetForm(id){const form=$(`#${id}`);form.reset();delete form.dataset.editId;if(id==='consulta-form')form.elements.duracaoMinutos.value=30;form.scrollIntoView({behavior:'smooth',block:'start'})}
+function setForm(form,values){Object.entries(values).forEach(([key,value])=>{const field=form.elements[key];if(!field)return;if(field.type==='checkbox')field.checked=Boolean(value);else field.value=value??''});form.scrollIntoView({behavior:'smooth',block:'start'})}
 
-            navLinks.forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
+function navigate(tab){$$('.screen').forEach(el=>el.classList.toggle('active',el.id===tab));$$('.menu-link').forEach(el=>el.classList.toggle('active',el.dataset.tab===tab));$('#topbar-title').textContent=$(`#${tab} h1`)?.textContent||'Hospital Saúde';$('#sidebar').classList.remove('open');$('#menu-toggle').setAttribute('aria-expanded','false');history.replaceState(null,'',`#${tab}`)}
 
-            tabContents.forEach(content => {
-                if (content.id === targetTab) {
-                    content.classList.add('active');
-                } else {
-                    content.classList.remove('active');
-                }
-            });
+async function loadAll(){
+  $('#api-state').textContent='Atualizando…';
+  try{
+    const [pacientes,profissionais,consultas,internacoes,quartos]=await Promise.all(['/pacientes','/profissionais','/consultas','/internacoes','/quartos'].map(path=>api(path)));
+    Object.assign(state,{pacientes,profissionais,consultas,internacoes,quartos});
+    renderAll();fillOptions();$('#api-state').textContent='API conectada';$('#api-state').className='api-state online';
+  }catch(error){$('#api-state').textContent='API indisponível';$('#api-state').className='api-state offline';toast(error.message,true)}
+}
 
-            if (topbarTitle && tabTitles[targetTab]) {
-                topbarTitle.textContent = tabTitles[targetTab];
-            }
-        });
-    });
+function renderAll(){renderPacientes();renderProfissionais();renderConsultas();renderInternacoes();renderQuartos();renderDashboard()}
+function empty(text){return `<div class="empty-state">${esc(text)}</div>`}
+function renderPacientes(list=state.pacientes){$('#paciente-count').textContent=`${list.length} paciente${list.length===1?'':'s'}`;$('#pacientes-lista').innerHTML=list.length?list.map(p=>`<div class="data-row"><div class="row-main"><div class="row-title"><span class="mono">#${p.id}</span>${esc(p.nome)}</div><div class="row-meta">${esc(p.cpf)} · ${formatDate(p.dataNascimento)}${p.idade!=null?` · ${p.idade} anos`:''}</div></div><div class="row-meta">${esc(p.telefone||'Sem telefone')} · ${esc(p.email||'Sem e-mail')}</div><div class="row-actions"><button onclick="editarPaciente(${p.id})">Editar</button><button class="danger" onclick="excluirPaciente(${p.id})">Excluir</button></div></div>`).join(''):empty('Nenhum paciente cadastrado.')}
+function renderProfissionais(list=state.profissionais){$('#profissional-count').textContent=`${list.length} profissional${list.length===1?'':'is'}`;$('#profissionais-lista').innerHTML=list.length?list.map(p=>`<div class="data-row"><div class="row-main"><div class="row-title"><span class="mono">#${p.id}</span>${esc(p.nome)}</div><div class="row-meta">${esc(p.registroProfissional)} · ${esc(label(p.categoria))}</div></div><div class="row-meta">${esc(p.especialidade||'Sem especialidade')} · ${esc(p.email||'Sem e-mail')}</div><div class="row-actions"><button onclick="editarProfissional(${p.id})">Editar</button><button class="danger" onclick="excluirProfissional(${p.id})">Excluir</button></div></div>`).join(''):empty('Nenhum profissional cadastrado.')}
+function renderConsultas(){const list=state.consultas;$('#consulta-count').textContent=`${list.length} consulta${list.length===1?'':'s'}`;$('#consultas-lista').innerHTML=list.length?list.map(c=>`<div class="data-row"><div class="row-main"><div class="row-title"><span class="mono">#${c.id}</span>${esc(c.paciente?.nome)} ${pill(c.situacao)}</div><div class="row-meta">${esc(label(c.modalidade))} · ${esc(c.motivoConsulta)}</div></div><div class="row-meta">${formatDateTime(c.dataHora)} · ${c.duracaoMinutos||30} min · ${esc(c.profissional?.nome)}</div><div class="row-actions">${['AGENDADA','CONFIRMADA'].includes(c.situacao)?`<button onclick="editarConsulta(${c.id})">Editar</button><button class="danger" onclick="cancelarConsulta(${c.id})">Cancelar</button>`:''}</div></div>`).join(''):empty('Nenhuma consulta registrada.')}
+function renderInternacoes(){const list=state.internacoes;$('#internacao-count').textContent=`${list.length} internação${list.length===1?'':'ões'}`;$('#internacoes-lista').innerHTML=list.length?list.map(i=>`<div class="data-row"><div class="row-main"><div class="row-title"><span class="mono">#${i.id}</span>${esc(i.paciente?.nome)} ${pill(i.status)}</div><div class="row-meta">${esc(i.quarto?.numeroIdentificacao||'Sem quarto')} · ${esc(i.profissional?.nome)}</div></div><div class="row-meta">Entrada ${formatDateTime(i.dataEntrada)} · Alta ${formatDate(i.dataEfetivaAlta||i.dataPrevistaAlta)}</div><div class="row-actions">${i.status==='EM_ANDAMENTO'?`<button onclick="editarInternacao(${i.id})">Editar</button><button onclick="darAlta(${i.id})">Dar alta</button><button class="danger" onclick="cancelarInternacao(${i.id})">Cancelar</button>`:''}</div></div>`).join(''):empty('Nenhuma internação registrada.')}
+function renderQuartos(){const list=state.quartos;$('#quarto-count').textContent=`${list.length} quarto${list.length===1?'':'s'}`;$('#quartos-lista').innerHTML=list.length?list.map(q=>{const pct=Math.min(100,Math.round((q.ocupacaoAtual||0)/q.capacidadeMaxima*100));return `<article class="room-card"><div class="room-head"><div><span class="mono">#${q.id}</span><h2>${esc(q.numeroIdentificacao)}</h2></div>${pill(q.situacao)}</div><p>${esc(q.descricaoTipo||label(q.tipo))} · ${q.andar}º andar · ${q.ocupacaoAtual||0} de ${q.capacidadeMaxima} leitos</p><div class="occupancy" aria-label="${pct}% ocupado"><span style="width:${pct}%"></span></div><div class="row-actions"><button onclick="editarQuarto(${q.id})">Editar</button><button onclick="alternarManutencao(${q.id},'${q.situacao}')">${q.situacao==='EM_MANUTENCAO'?'Liberar':'Manutenção'}</button><button class="danger" onclick="excluirQuarto(${q.id})">Excluir</button></div></article>`}).join(''):empty('Nenhum quarto cadastrado.')}
+function renderDashboard(){const ativas=state.consultas.filter(c=>activeStatus(c.situacao)).length;const ocupados=state.quartos.reduce((sum,q)=>sum+(q.ocupacaoAtual||0),0);const capacidade=state.quartos.reduce((sum,q)=>sum+(q.capacidadeMaxima||0),0);$('#kpi-pacientes').textContent=state.pacientes.length;$('#kpi-profissionais').textContent=state.profissionais.length;$('#kpi-consultas').textContent=ativas;$('#kpi-leitos').textContent=`${ocupados}/${capacidade}`;$('#dashboard-status').innerHTML=`<div><span>Internações em andamento</span><strong>${state.internacoes.filter(i=>i.status==='EM_ANDAMENTO').length}</strong></div><div><span>Quartos disponíveis</span><strong>${state.quartos.filter(q=>q.situacao==='DISPONIVEL').length}</strong></div><div><span>Consultas canceladas preservadas</span><strong>${state.consultas.filter(c=>c.situacao==='CANCELADA').length}</strong></div>`}
 
-    // Mock simples para botões de submissão (Aviso de Sprint 1)
-    const mockForms = document.querySelectorAll('form');
-    mockForms.forEach(form => {
-        form.addEventListener('submit', (e) => {
-            e.preventDefault();
-            alert('Sprint 1: Tela sem funcionalidade (Mockup visual para validação de layout). A integração REST/banco ocorrerá nas próximas sprints.');
-        });
-    });
+function fillOptions(){
+  $$('[data-options="pacientes"]').forEach(select=>{const selected=select.value;select.innerHTML='<option value="">Selecione</option>'+state.pacientes.map(p=>`<option value="${p.id}">${esc(p.nome)} · ${esc(p.cpf)}</option>`).join('');select.value=selected});
+  $$('[data-options="profissionais"]').forEach(select=>{const selected=select.value;select.innerHTML='<option value="">Selecione</option>'+state.profissionais.map(p=>`<option value="${p.id}">${esc(p.nome)} · ${esc(label(p.categoria))}</option>`).join('');select.value=selected});
+  $$('[data-options="quartos"]').forEach(select=>{const selected=select.value;select.innerHTML='<option value="">Selecione</option>'+state.quartos.filter(q=>q.leitosDisponiveis>0&&q.situacao!=='EM_MANUTENCAO').map(q=>`<option value="${q.id}">${esc(q.numeroIdentificacao)} · ${q.leitosDisponiveis} vaga(s)</option>`).join('');select.value=selected});
+}
+
+async function saveForm(form,path,payload,id){try{await api(id?`${path}/${id}`:path,{method:id?'PUT':'POST',body:JSON.stringify(clean(payload))});toast(id?'Registro atualizado.':'Registro salvo.');resetForm(form.getAttribute('id'));await loadAll()}catch(error){toast(error.message,true)}}
+
+window.editarPaciente=id=>{navigate('pacientes');const p=state.pacientes.find(item=>item.id===id);setForm($('#paciente-form'),p);$('#paciente-form').dataset.editId=id};
+window.excluirPaciente=async id=>{if(!confirm('Excluir este paciente sem histórico?'))return;await action(`/pacientes/${id}`,'DELETE','Paciente excluído.')};
+window.editarProfissional=id=>{navigate('profissionais');const p=state.profissionais.find(item=>item.id===id);setForm($('#profissional-form'),p);$('#profissional-form').dataset.editId=id};
+window.excluirProfissional=async id=>{if(!confirm('Excluir este profissional sem atendimentos?'))return;await action(`/profissionais/${id}`,'DELETE','Profissional excluído.')};
+window.editarConsulta=id=>{navigate('consultas');const c=state.consultas.find(item=>item.id===id);setForm($('#consulta-form'),{id:c.id,pacienteId:c.paciente?.id,profissionalId:c.profissional?.id,dataHora:c.dataHora?.slice(0,16),duracaoMinutos:c.duracaoMinutos||30,modalidade:c.modalidade,especialidade:c.especialidade,prioridade:c.prioridade,motivoConsulta:c.motivoConsulta,observacoesMedicas:c.observacoesMedicas});$('#consulta-form').dataset.editId=id};
+window.cancelarConsulta=async id=>{if(confirm('Cancelar a consulta e manter o registro no histórico?'))await action(`/consultas/${id}`,'DELETE','Consulta cancelada.')};
+window.darAlta=async id=>{if(confirm('Confirmar alta desta internação?'))await action(`/internacoes/${id}/alta`,'PUT','Alta registrada.')};
+window.cancelarInternacao=async id=>{if(confirm('Cancelar a internação e manter o registro no histórico?'))await action(`/internacoes/${id}`,'DELETE','Internação cancelada.')};
+window.editarInternacao=async id=>{const atual=state.internacoes.find(item=>item.id===id);const observacoes=prompt('Observações da internação:',atual.observacoes||'');if(observacoes===null)return;await action(`/internacoes/${id}`,'PUT','Internação atualizada.',{observacoes,dataPrevistaAlta:atual.dataPrevistaAlta})};
+window.editarQuarto=id=>{navigate('quartos');const q=state.quartos.find(item=>item.id===id);const form=$('#quarto-form');setForm(form,q);form.dataset.editId=id;form.elements.tipo.disabled=true};
+window.alternarManutencao=async(id,status)=>await action(`/quartos/${id}/${status==='EM_MANUTENCAO'?'liberar':'manutencao'}`,'PUT','Situação do quarto atualizada.');
+window.excluirQuarto=async id=>{if(confirm('Excluir este quarto sem histórico de internações?'))await action(`/quartos/${id}`,'DELETE','Quarto excluído.')};
+async function action(path,method,message,body){try{await api(path,{method,body:body?JSON.stringify(body):undefined});toast(message);await loadAll()}catch(error){toast(error.message,true)}}
+
+async function loadHistorico(){const id=$('#historico-paciente').value;if(!id){toast('Selecione um paciente.',true);return}const container=$('#historico-conteudo');container.className='history-content';container.innerHTML='<div class="loading">Carregando prontuário…</div>';try{const h=await api(`/historicos/paciente/${id}`);const block=(title,items,render)=>`<section class="history-block"><h2>${title}<span>${items.length}</span></h2>${items.length?items.map(render).join(''):empty(`Nenhum registro em ${title.toLowerCase()}.`)}</section>`;container.innerHTML=`<div class="patient-summary"><h2>${esc(h.paciente.nome)}</h2><div>${esc(h.paciente.cpf)} · ${formatDate(h.paciente.dataNascimento)} · ${esc(h.paciente.telefone||'Sem telefone')}</div></div>${block('Consultas',h.consultas,c=>`<div class="history-item"><strong>${formatDateTime(c.dataHora)} · ${esc(c.profissional?.nome)}</strong> ${pill(c.situacao)}<div>${esc(c.motivoConsulta||'Sem motivo registrado')}</div></div>`)}${block('Internações',h.internacoes,i=>`<div class="history-item"><strong>${formatDateTime(i.dataEntrada)} · ${esc(i.quarto?.numeroIdentificacao)}</strong> ${pill(i.status)}<div>${esc(i.observacoes||'Sem observações')}</div></div>`)}${block('Cirurgias',h.procedimentosCirurgicos,p=>`<div class="history-item"><strong>${formatDateTime(p.inicioPrevisto)} · ${esc(p.tipo||p.descricao)}</strong> ${pill(p.situacao)}<div>${esc(p.cirurgiao?.nome)} · ${esc(p.observacoesPosOperatorias||p.observacoesPreOperatorias||'Sem observações')}</div></div>`)}`;}catch(error){container.innerHTML=empty(error.message)}}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  document.addEventListener('click',event=>{const tab=event.target.closest('[data-tab]')?.dataset.tab;if(tab){event.preventDefault();navigate(tab)}const target=event.target.closest('[data-toggle-form]')?.dataset.toggleForm;if(target)resetForm(target);const cancel=event.target.closest('[data-cancel-form]')?.dataset.cancelForm;if(cancel){const form=$(`#${cancel}`);form.elements.tipo&&(form.elements.tipo.disabled=false);resetForm(cancel)}});
+  $('#menu-toggle').addEventListener('click',()=>{const open=$('#sidebar').classList.toggle('open');$('#menu-toggle').setAttribute('aria-expanded',String(open))});
+  $('#paciente-busca').addEventListener('input',event=>renderPacientes(state.pacientes.filter(p=>p.nome.toLowerCase().includes(event.target.value.toLowerCase()))));
+  $('#buscar-especialidade').addEventListener('click',async()=>{const term=$('#especialidade-busca').value.trim();if(!term){renderProfissionais();return}try{renderProfissionais(await api(`/profissionais/especialidade/${encodeURIComponent(term)}`))}catch(error){toast(error.message,true)}});
+  $('#carregar-historico').addEventListener('click',loadHistorico);
+  $('#paciente-form').addEventListener('submit',event=>{event.preventDefault();const data=formData(event.target);const id=event.target.dataset.editId;delete data.id;saveForm(event.target,'/pacientes',data,id)});
+  $('#profissional-form').addEventListener('submit',event=>{event.preventDefault();const data=formData(event.target);const id=event.target.dataset.editId;delete data.id;saveForm(event.target,'/profissionais',data,id)});
+  $('#consulta-form').addEventListener('submit',event=>{event.preventDefault();const data=formData(event.target);const id=event.target.dataset.editId;delete data.id;data.pacienteId=Number(data.pacienteId);data.profissionalId=Number(data.profissionalId);data.duracaoMinutos=Number(data.duracaoMinutos);saveForm(event.target,'/consultas',data,id)});
+  $('#internacao-form').addEventListener('submit',event=>{event.preventDefault();const data=formData(event.target);['pacienteId','profissionalId','quartoId'].forEach(key=>data[key]=Number(data[key]));saveForm(event.target,'/internacoes',data)});
+  $('#quarto-form').addEventListener('submit',event=>{event.preventDefault();const data=formData(event.target);const id=event.target.dataset.editId;data.andar=Number(data.andar);data.capacidadeMaxima=Number(data.capacidadeMaxima);data.permiteAcompanhante=event.target.elements.permiteAcompanhante.checked;if(id)delete data.tipo;saveForm(event.target,'/quartos',data,id);event.target.elements.tipo.disabled=false});
+  navigate(location.hash.slice(1)||'dashboard');loadAll();
 });

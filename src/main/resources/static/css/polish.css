@@ -1,0 +1,31 @@
+.sheet {
+    min-height: 0;
+}
+
+.btn:hover {
+    filter: none;
+    border-color: var(--text);
+}
+
+.btn.primary:hover {
+    background: #2b2d2e;
+}
+
+.menu-link.active {
+    border-bottom: 2px solid var(--accent);
+    box-shadow: none;
+}
+
+.kpi-strip > div:first-child strong,
+.occupancy span {
+    color: var(--accent);
+}
+
+.kpi-strip > div:first-child {
+    border-top: 2px solid var(--accent);
+}
+
+.summary-list > div {
+    min-height: 5rem;
+    align-items: center;
+}
