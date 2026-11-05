@@ -12,6 +12,7 @@ class Paciente {
   +String cpf
   +LocalDate dataNascimento
 }
+class Cpf
 
 class ProfissionalSaude {
   <<abstract>>
@@ -87,7 +88,38 @@ class HistoricoMedico {
   +List internacoes
   +List procedimentosCirurgicos
 }
+class CategoriaProfissional {
+  <<enumeration>>
+}
+class ModalidadeAtendimento {
+  <<enumeration>>
+}
+class PrioridadeAtendimento {
+  <<enumeration>>
+}
+class SituacaoConsulta {
+  <<enumeration>>
+}
+class StatusConsulta {
+  <<enumeration>>
+}
+class StatusCirurgia {
+  <<enumeration>>
+}
+class StatusInternacao {
+  <<enumeration>>
+}
+class StatusQuarto {
+  <<enumeration>>
+}
+class TipoIsolamento {
+  <<enumeration>>
+}
+class TipoQuarto {
+  <<enumeration>>
+}
 
+Paciente *-- Cpf
 Paciente "1" --> "0..*" Atendimento
 ProfissionalSaude "1" --> "0..*" Atendimento
 Paciente "1" --> "0..*" Internacao
@@ -97,6 +129,16 @@ HistoricoMedico --> Paciente
 HistoricoMedico o-- Consulta
 HistoricoMedico o-- Internacao
 HistoricoMedico o-- ProcedimentoCirurgico
+ProfissionalSaude --> CategoriaProfissional
+Consulta --> ModalidadeAtendimento
+Consulta --> SituacaoConsulta
+Consulta ..> StatusConsulta : compatibilidade
+AtendimentoEmergencia --> PrioridadeAtendimento
+ProcedimentoCirurgico --> StatusCirurgia
+Internacao --> StatusInternacao
+Quarto --> StatusQuarto
+Quarto --> TipoQuarto
+QuartoIsolamento --> TipoIsolamento
 ```
 
 ## Persistência

@@ -90,10 +90,50 @@
 - Responsabilidades: manter um único leito e exigir a classificação do isolamento.
 - Colaborações: `Quarto`, `TipoIsolamento`, `Internacao`.
 
-## Situações e classificações do domínio
+## Cpf
 
-- Responsabilidades: restringir valores e transições por meio de `CategoriaProfissional`, `SituacaoConsulta`, `StatusCirurgia`, `StatusInternacao`, `StatusQuarto`, `PrioridadeAtendimento`, `TipoQuarto` e `TipoIsolamento`.
-- Colaborações: entidades e serviços que validam cada fluxo.
+- Responsabilidades: normalizar, validar e formatar o CPF do paciente como objeto de valor.
+- Colaborações: `Paciente`, `PacienteService`.
+
+## CategoriaProfissional
+
+- Responsabilidades: restringir o discriminador profissional a clínico geral, especialista ou cirurgião.
+- Colaborações: `ProfissionalSaude`, `ProfissionalSaudeDTO`.
+
+## ModalidadeAtendimento
+
+- Responsabilidades: identificar consulta de rotina, especializada ou emergência.
+- Colaborações: `Consulta`, `ConsultaRequestDTO`.
+
+## PrioridadeAtendimento
+
+- Responsabilidades: classificar a prioridade clínica dos atendimentos de emergência.
+- Colaborações: `AtendimentoEmergencia`.
+
+## SituacaoConsulta e StatusConsulta
+
+- Responsabilidades: controlar o fluxo atual da consulta e preservar a enumeração legada usada por integrações antigas.
+- Colaborações: `Consulta`, `ConsultaService`.
+
+## StatusCirurgia
+
+- Responsabilidades: controlar as transições de cirurgia agendada, em andamento, concluída ou cancelada.
+- Colaborações: `ProcedimentoCirurgico`, `ProcedimentoCirurgicoService`.
+
+## StatusInternacao
+
+- Responsabilidades: distinguir internação em andamento, alta e cancelamento lógico.
+- Colaborações: `Internacao`, `InternacaoService`.
+
+## StatusQuarto e TipoQuarto
+
+- Responsabilidades: controlar disponibilidade/manutenção e selecionar a subclasse de quarto.
+- Colaborações: `Quarto`, `QuartoService`.
+
+## TipoIsolamento
+
+- Responsabilidades: classificar isolamento de contato, gotículas ou aerossóis.
+- Colaborações: `QuartoIsolamento`.
 
 ## HistoricoMedico
 

@@ -5,6 +5,7 @@ class Paciente {
   +String nome
   +String cpf
 }
+class Cpf
 class ProfissionalSaude {
   <<abstract>>
   +Long id
@@ -60,7 +61,53 @@ Quarto <|-- Enfermaria
 Quarto <|-- Apartamento
 Quarto <|-- UnidadeTerapiaIntensiva
 Quarto <|-- QuartoIsolamento
+class HistoricoMedico
+class CategoriaProfissional {
+  <<enumeration>>
+}
+class ModalidadeAtendimento {
+  <<enumeration>>
+}
+class PrioridadeAtendimento {
+  <<enumeration>>
+}
+class SituacaoConsulta {
+  <<enumeration>>
+}
+class StatusConsulta {
+  <<enumeration>>
+}
+class StatusCirurgia {
+  <<enumeration>>
+}
+class StatusInternacao {
+  <<enumeration>>
+}
+class StatusQuarto {
+  <<enumeration>>
+}
+class TipoIsolamento {
+  <<enumeration>>
+}
+class TipoQuarto {
+  <<enumeration>>
+}
+Paciente *-- Cpf
 Paciente "1" --> "0..*" Atendimento
 ProfissionalSaude "1" --> "0..*" Atendimento
 Paciente "1" --> "0..*" Internacao
 Quarto "1" --> "0..*" Internacao
+ProfissionalSaude --> CategoriaProfissional
+Consulta --> ModalidadeAtendimento
+Consulta --> SituacaoConsulta
+Consulta ..> StatusConsulta : compatibilidade
+AtendimentoEmergencia --> PrioridadeAtendimento
+ProcedimentoCirurgico --> StatusCirurgia
+Internacao --> StatusInternacao
+Quarto --> StatusQuarto
+Quarto --> TipoQuarto
+QuartoIsolamento --> TipoIsolamento
+HistoricoMedico --> Paciente
+HistoricoMedico o-- Consulta
+HistoricoMedico o-- Internacao
+HistoricoMedico o-- ProcedimentoCirurgico
