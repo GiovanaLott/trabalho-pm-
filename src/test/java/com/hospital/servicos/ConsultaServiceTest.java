@@ -60,7 +60,7 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any(), eq(StatusConsulta.CANCELADA)))
+        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         ConsultaRotina consultaSalva = new ConsultaRotina(10L, paciente, profissional, dataHoraFutura, "Rotina", "Sem queixas", SituacaoConsulta.AGENDADA);
@@ -83,8 +83,8 @@ class ConsultaServiceTest {
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
 
-        Consulta conflito = new Consulta(5L, paciente, profissional, dataHoraFutura, "Emergência", null, SituacaoConsulta.AGENDADA);
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any(), eq(StatusConsulta.CANCELADA)))
+        Consulta conflito = new ConsultaRotina(5L, paciente, profissional, dataHoraFutura, "Emergência", null, SituacaoConsulta.AGENDADA);
+        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
                 .thenReturn(List.of(conflito));
 
         assertThrows(ChoqueHorarioException.class, () -> consultaService.agendarConsulta(dto));
@@ -108,7 +108,7 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any(), eq(StatusConsulta.CANCELADA)))
+        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         ConsultaEspecializada consultaSalva = new ConsultaEspecializada(20L, paciente, profissional, dataHoraFutura,
@@ -130,7 +130,7 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any(), eq(StatusConsulta.CANCELADA)))
+        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         RegraNegocioException ex = assertThrows(RegraNegocioException.class,
@@ -148,7 +148,7 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any(), eq(StatusConsulta.CANCELADA)))
+        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         AtendimentoEmergencia salvo = new AtendimentoEmergencia(30L, paciente, profissional, LocalDateTime.now(),
@@ -171,7 +171,7 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any(), eq(StatusConsulta.CANCELADA)))
+        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
                 .thenReturn(Collections.emptyList());
 
         assertThrows(RegraNegocioException.class, () -> consultaService.agendarConsulta(dto));
