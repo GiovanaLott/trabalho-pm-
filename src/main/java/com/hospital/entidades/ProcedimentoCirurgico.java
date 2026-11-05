@@ -1,28 +1,22 @@
 package com.hospital.entidades;
 
+import com.hospital.excecoes.RegraNegocioException;
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "procedimentos_cirurgicos")
-public class ProcedimentoCirurgico {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+@AssociationOverride(name = "profissional",
+        joinColumns = @JoinColumn(name = "cirurgiao_id", nullable = false))
+public class ProcedimentoCirurgico extends Atendimento {
 
     @Column(nullable = false, length = 150)
     private String descricao;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "paciente_id", nullable = false)
-    private Paciente paciente;
-
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "cirurgiao_id", nullable = false)
-    private ProfissionalSaude cirurgiao;
+    @Column(name = "tipo_procedimento", length = 100)
+    private String tipo;
 
     @Column(name = "data_cirurgia", nullable = false)
     private LocalDate data;
@@ -32,6 +26,12 @@ public class ProcedimentoCirurgico {
 
     @Column(name = "horario_termino")
     private LocalTime horarioTermino;
+
+    @Column(name = "inicio_efetivo")
+    private LocalDateTime inicioEfetivo;
+
+    @Column(name = "fim_efetivo")
+    private LocalDateTime fimEfetivo;
 
     @Column(name = "observacoes_pre_operatorias", columnDefinition = "TEXT")
     private String observacoesPreOperatorias;
@@ -44,30 +44,24 @@ public class ProcedimentoCirurgico {
     private StatusCirurgia situacao = StatusCirurgia.AGENDADA;
 
     public ProcedimentoCirurgico() {
+        super();
     }
 
     public ProcedimentoCirurgico(Long id, String descricao, Paciente paciente, ProfissionalSaude cirurgiao,
                                 LocalDate data, LocalTime horarioInicioPrevisto, LocalTime horarioTermino,
                                 String observacoesPreOperatorias, String observacoesPosOperatorias,
                                 StatusCirurgia situacao) {
-        this.id = id;
+        super(id, paciente, cirurgiao,
+                data != null && horarioInicioPrevisto != null
+                        ? LocalDateTime.of(data, horarioInicioPrevisto) : null,
+                60);
         this.descricao = descricao;
-        this.paciente = paciente;
-        this.cirurgiao = cirurgiao;
         this.data = data;
         this.horarioInicioPrevisto = horarioInicioPrevisto;
         this.horarioTermino = horarioTermino;
         this.observacoesPreOperatorias = observacoesPreOperatorias;
         this.observacoesPosOperatorias = observacoesPosOperatorias;
         this.situacao = situacao != null ? situacao : StatusCirurgia.AGENDADA;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getDescricao() {
@@ -78,20 +72,35 @@ public class ProcedimentoCirurgico {
         this.descricao = descricao;
     }
 
-    public Paciente getPaciente() {
-        return paciente;
+    public String getTipo() {
+        return tipo;
     }
 
-    public void setPaciente(Paciente paciente) {
-        this.paciente = paciente;
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
+    }
+
+    @Override
+    public void validarCondicoesAtendimento() {
+        super.validarCondicoesAtendimento();
+        if (descricao == null || descricao.isBlank()) {
+            throw new RegraNegocioException("A descrição do procedimento cirúrgico é obrigatória.");
+        }
+        if (tipo == null || tipo.isBlank()) {
+            throw new RegraNegocioException("O tipo do procedimento cirúrgico é obrigatório.");
+        }
+        if (!(getProfissional() instanceof Cirurgiao)) {
+            throw new RegraNegocioException(
+                    "O profissional responsável pelo procedimento deve pertencer à categoria cirurgião.");
+        }
     }
 
     public ProfissionalSaude getCirurgiao() {
-        return cirurgiao;
+        return getProfissional();
     }
 
     public void setCirurgiao(ProfissionalSaude cirurgiao) {
-        this.cirurgiao = cirurgiao;
+        setProfissional(cirurgiao);
     }
 
     public LocalDate getData() {
@@ -100,6 +109,7 @@ public class ProcedimentoCirurgico {
 
     public void setData(LocalDate data) {
         this.data = data;
+        sincronizarInicioPrevisto();
     }
 
     public LocalTime getHorarioInicioPrevisto() {
@@ -108,6 +118,7 @@ public class ProcedimentoCirurgico {
 
     public void setHorarioInicioPrevisto(LocalTime horarioInicioPrevisto) {
         this.horarioInicioPrevisto = horarioInicioPrevisto;
+        sincronizarInicioPrevisto();
     }
 
     public LocalTime getHorarioTermino() {
@@ -116,6 +127,25 @@ public class ProcedimentoCirurgico {
 
     public void setHorarioTermino(LocalTime horarioTermino) {
         this.horarioTermino = horarioTermino;
+    }
+
+    public LocalDateTime getInicioEfetivo() {
+        return inicioEfetivo;
+    }
+
+    public void setInicioEfetivo(LocalDateTime inicioEfetivo) {
+        this.inicioEfetivo = inicioEfetivo;
+    }
+
+    public LocalDateTime getFimEfetivo() {
+        return fimEfetivo;
+    }
+
+    public void setFimEfetivo(LocalDateTime fimEfetivo) {
+        this.fimEfetivo = fimEfetivo;
+        if (fimEfetivo != null) {
+            this.horarioTermino = fimEfetivo.toLocalTime();
+        }
     }
 
     public String getObservacoesPreOperatorias() {
@@ -142,16 +172,20 @@ public class ProcedimentoCirurgico {
         this.situacao = situacao;
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ProcedimentoCirurgico that = (ProcedimentoCirurgico) o;
-        return Objects.equals(id, that.id);
+    @PrePersist
+    @PreUpdate
+    private void sincronizarCamposLegados() {
+        if (getInicioPrevisto() != null) {
+            data = getInicioPrevisto().toLocalDate();
+            horarioInicioPrevisto = getInicioPrevisto().toLocalTime();
+        } else {
+            sincronizarInicioPrevisto();
+        }
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    private void sincronizarInicioPrevisto() {
+        if (data != null && horarioInicioPrevisto != null) {
+            setInicioPrevisto(LocalDateTime.of(data, horarioInicioPrevisto));
+        }
     }
 }

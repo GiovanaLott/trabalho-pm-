@@ -17,6 +17,7 @@ public class ConsultaDTO {
     private String especialidade;
     private PrioridadeAtendimento prioridade;
     private Boolean aguardandoAvaliacao;
+    private Integer duracaoMinutos;
 
     public ConsultaDTO() {
     }
@@ -32,6 +33,7 @@ public class ConsultaDTO {
             this.situacao = consulta.getSituacao();
             this.status = consulta.getStatus();
             this.modalidade = consulta.getModalidade();
+            this.duracaoMinutos = consulta.getDuracaoMinutos();
 
             if (consulta instanceof ConsultaEspecializada specialized) {
                 this.especialidade = specialized.getEspecialidade();
@@ -152,5 +154,13 @@ public class ConsultaDTO {
 
     public void setAguardandoAvaliacao(Boolean aguardandoAvaliacao) {
         this.aguardandoAvaliacao = aguardandoAvaliacao;
+    }
+
+    public Integer getDuracaoMinutos() {
+        return duracaoMinutos;
+    }
+
+    public void setDuracaoMinutos(Integer duracaoMinutos) {
+        this.duracaoMinutos = duracaoMinutos;
     }
 }

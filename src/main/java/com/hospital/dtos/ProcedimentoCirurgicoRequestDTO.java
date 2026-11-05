@@ -10,6 +10,9 @@ public class ProcedimentoCirurgicoRequestDTO {
     @NotBlank(message = "A descrição do procedimento é obrigatória")
     private String descricao;
 
+    @NotBlank(message = "O tipo do procedimento é obrigatório")
+    private String tipo;
+
     @NotNull(message = "O ID do paciente é obrigatório")
     private Long pacienteId;
 
@@ -21,6 +24,8 @@ public class ProcedimentoCirurgicoRequestDTO {
 
     @NotNull(message = "O horário de início previsto é obrigatório")
     private LocalTime horarioInicioPrevisto;
+
+    private LocalTime horarioFimPrevisto;
 
     private String observacoesPreOperatorias;
 
@@ -44,6 +49,14 @@ public class ProcedimentoCirurgicoRequestDTO {
 
     public void setDescricao(String descricao) {
         this.descricao = descricao;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 
     public Long getPacienteId() {
@@ -76,6 +89,14 @@ public class ProcedimentoCirurgicoRequestDTO {
 
     public void setHorarioInicioPrevisto(LocalTime horarioInicioPrevisto) {
         this.horarioInicioPrevisto = horarioInicioPrevisto;
+    }
+
+    public LocalTime getHorarioFimPrevisto() {
+        return horarioFimPrevisto;
+    }
+
+    public void setHorarioFimPrevisto(LocalTime horarioFimPrevisto) {
+        this.horarioFimPrevisto = horarioFimPrevisto;
     }
 
     public String getObservacoesPreOperatorias() {

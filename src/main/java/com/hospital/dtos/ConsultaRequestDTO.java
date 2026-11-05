@@ -3,6 +3,7 @@ package com.hospital.dtos;
 import com.hospital.entidades.ModalidadeAtendimento;
 import com.hospital.entidades.PrioridadeAtendimento;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import java.time.LocalDateTime;
 
 public class ConsultaRequestDTO {
@@ -25,6 +26,9 @@ public class ConsultaRequestDTO {
     private String especialidade;
 
     private PrioridadeAtendimento prioridade;
+
+    @Positive(message = "A duração deve ser maior que zero")
+    private Integer duracaoMinutos = 30;
 
     public ConsultaRequestDTO() {
     }
@@ -115,5 +119,13 @@ public class ConsultaRequestDTO {
 
     public void setPrioridade(PrioridadeAtendimento prioridade) {
         this.prioridade = prioridade;
+    }
+
+    public Integer getDuracaoMinutos() {
+        return duracaoMinutos;
+    }
+
+    public void setDuracaoMinutos(Integer duracaoMinutos) {
+        this.duracaoMinutos = duracaoMinutos;
     }
 }

@@ -19,7 +19,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -38,6 +37,9 @@ class ConsultaServiceTest {
 
     @Mock
     private ProfissionalSaudeRepository profissionalRepository;
+
+    @Mock
+    private AgendaService agendaService;
 
     @InjectMocks
     private ConsultaService consultaService;
@@ -60,9 +62,6 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
-                .thenReturn(Collections.emptyList());
-
         ConsultaRotina consultaSalva = new ConsultaRotina(10L, paciente, profissional, dataHoraFutura, "Rotina", "Sem queixas", SituacaoConsulta.AGENDADA);
         when(consultaRepository.save(any(Consulta.class))).thenReturn(consultaSalva);
 
@@ -83,9 +82,8 @@ class ConsultaServiceTest {
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
 
-        Consulta conflito = new ConsultaRotina(5L, paciente, profissional, dataHoraFutura, "Emergência", null, SituacaoConsulta.AGENDADA);
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
-                .thenReturn(List.of(conflito));
+        doThrow(new ChoqueHorarioException("Conflito de horário"))
+                .when(agendaService).validarDisponibilidade(eq(1L), any(), any(), isNull(), isNull());
 
         assertThrows(ChoqueHorarioException.class, () -> consultaService.agendarConsulta(dto));
         verify(consultaRepository, never()).save(any(Consulta.class));
@@ -108,9 +106,6 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
-                .thenReturn(Collections.emptyList());
-
         ConsultaEspecializada consultaSalva = new ConsultaEspecializada(20L, paciente, profissional, dataHoraFutura,
                 "Avaliação cardíaca", null, SituacaoConsulta.AGENDADA, "Cardiologia");
         when(consultaRepository.save(any(Consulta.class))).thenReturn(consultaSalva);
@@ -130,9 +125,6 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
-                .thenReturn(Collections.emptyList());
-
         RegraNegocioException ex = assertThrows(RegraNegocioException.class,
                 () -> consultaService.agendarConsulta(dto));
 
@@ -148,9 +140,6 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
-                .thenReturn(Collections.emptyList());
-
         AtendimentoEmergencia salvo = new AtendimentoEmergencia(30L, paciente, profissional, LocalDateTime.now(),
                 "Suspeita de infarto", null, SituacaoConsulta.AGENDADA, PrioridadeAtendimento.CRITICA);
         when(consultaRepository.save(any(Consulta.class))).thenReturn(salvo);
@@ -171,9 +160,6 @@ class ConsultaServiceTest {
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
-        when(consultaRepository.findConflitoHorarioProfissional(anyLong(), any(), any()))
-                .thenReturn(Collections.emptyList());
-
         assertThrows(RegraNegocioException.class, () -> consultaService.agendarConsulta(dto));
     }
 

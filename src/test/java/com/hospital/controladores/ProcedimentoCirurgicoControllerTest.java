@@ -41,11 +41,35 @@ class ProcedimentoCirurgicoControllerTest {
     private ProcedimentoCirurgicoService procedimentoService;
 
     @Test
+    @DisplayName("Deve rejeitar procedimento cirurgico sem tipo")
+    void deveRejeitarProcedimentoSemTipo() throws Exception {
+        String json = """
+                {
+                  "descricao": "Apendicectomia",
+                  "tipo": " ",
+                  "pacienteId": 1,
+                  "cirurgiaoId": 2,
+                  "data": "2030-03-10",
+                  "horarioInicioPrevisto": "08:00:00",
+                  "horarioFimPrevisto": "10:00:00"
+                }
+                """;
+
+        mockMvc.perform(post("/procedimentos")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errors.tipo").exists());
+    }
+
+    @Test
     @DisplayName("Deve agendar procedimento cirurgico e retornar 201 Created")
     void deveAgendarProcedimentoComSucesso() throws Exception {
         ProcedimentoCirurgicoRequestDTO request = new ProcedimentoCirurgicoRequestDTO(
                 "Apendicectomia", 1L, 2L, LocalDate.now().plusDays(3), LocalTime.of(8, 0), "Jejum 8h"
         );
+        request.setTipo("Cirurgia geral");
+        request.setHorarioFimPrevisto(LocalTime.of(10, 0));
 
         ProcedimentoCirurgicoDTO response = new ProcedimentoCirurgicoDTO();
         response.setId(10L);

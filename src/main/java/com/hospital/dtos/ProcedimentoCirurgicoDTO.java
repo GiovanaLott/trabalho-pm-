@@ -4,17 +4,23 @@ import com.hospital.entidades.ProcedimentoCirurgico;
 import com.hospital.entidades.StatusCirurgia;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 
 public class ProcedimentoCirurgicoDTO {
 
     private Long id;
     private String descricao;
+    private String tipo;
     private PacienteDTO paciente;
     private ProfissionalSaudeDTO cirurgiao;
     private LocalDate data;
     private LocalTime horarioInicioPrevisto;
     private LocalTime horarioTermino;
+    private LocalDateTime inicioPrevisto;
+    private LocalDateTime fimPrevisto;
+    private LocalDateTime inicioEfetivo;
+    private LocalDateTime fimEfetivo;
     private String observacoesPreOperatorias;
     private String observacoesPosOperatorias;
     private StatusCirurgia situacao;
@@ -42,11 +48,16 @@ public class ProcedimentoCirurgicoDTO {
         if (procedimento != null) {
             this.id = procedimento.getId();
             this.descricao = procedimento.getDescricao();
+            this.tipo = procedimento.getTipo();
             this.paciente = procedimento.getPaciente() != null ? new PacienteDTO(procedimento.getPaciente()) : null;
             this.cirurgiao = procedimento.getCirurgiao() != null ? new ProfissionalSaudeDTO(procedimento.getCirurgiao()) : null;
             this.data = procedimento.getData();
             this.horarioInicioPrevisto = procedimento.getHorarioInicioPrevisto();
             this.horarioTermino = procedimento.getHorarioTermino();
+            this.inicioPrevisto = procedimento.getInicioPrevisto();
+            this.fimPrevisto = procedimento.getFimPrevisto();
+            this.inicioEfetivo = procedimento.getInicioEfetivo();
+            this.fimEfetivo = procedimento.getFimEfetivo();
             this.observacoesPreOperatorias = procedimento.getObservacoesPreOperatorias();
             this.observacoesPosOperatorias = procedimento.getObservacoesPosOperatorias();
             this.situacao = procedimento.getSituacao();
@@ -67,6 +78,14 @@ public class ProcedimentoCirurgicoDTO {
 
     public void setDescricao(String descricao) {
         this.descricao = descricao;
+    }
+
+    public String getTipo() {
+        return tipo;
+    }
+
+    public void setTipo(String tipo) {
+        this.tipo = tipo;
     }
 
     public PacienteDTO getPaciente() {
@@ -107,6 +126,38 @@ public class ProcedimentoCirurgicoDTO {
 
     public void setHorarioTermino(LocalTime horarioTermino) {
         this.horarioTermino = horarioTermino;
+    }
+
+    public LocalDateTime getInicioPrevisto() {
+        return inicioPrevisto;
+    }
+
+    public void setInicioPrevisto(LocalDateTime inicioPrevisto) {
+        this.inicioPrevisto = inicioPrevisto;
+    }
+
+    public LocalDateTime getFimPrevisto() {
+        return fimPrevisto;
+    }
+
+    public void setFimPrevisto(LocalDateTime fimPrevisto) {
+        this.fimPrevisto = fimPrevisto;
+    }
+
+    public LocalDateTime getInicioEfetivo() {
+        return inicioEfetivo;
+    }
+
+    public void setInicioEfetivo(LocalDateTime inicioEfetivo) {
+        this.inicioEfetivo = inicioEfetivo;
+    }
+
+    public LocalDateTime getFimEfetivo() {
+        return fimEfetivo;
+    }
+
+    public void setFimEfetivo(LocalDateTime fimEfetivo) {
+        this.fimEfetivo = fimEfetivo;
     }
 
     public String getObservacoesPreOperatorias() {

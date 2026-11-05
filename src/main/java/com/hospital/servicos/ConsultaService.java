@@ -22,13 +22,16 @@ public class ConsultaService {
     private final ConsultaRepository consultaRepository;
     private final PacienteRepository pacienteRepository;
     private final ProfissionalSaudeRepository profissionalRepository;
+    private final AgendaService agendaService;
 
     public ConsultaService(ConsultaRepository consultaRepository,
                            PacienteRepository pacienteRepository,
-                           ProfissionalSaudeRepository profissionalRepository) {
+                           ProfissionalSaudeRepository profissionalRepository,
+                           AgendaService agendaService) {
         this.consultaRepository = consultaRepository;
         this.pacienteRepository = pacienteRepository;
         this.profissionalRepository = profissionalRepository;
+        this.agendaService = agendaService;
     }
 
     @Transactional
@@ -50,12 +53,15 @@ public class ConsultaService {
         ProfissionalSaude profissional = profissionalRepository.findById(dto.getProfissionalId())
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Profissional de saúde não encontrado com ID: " + dto.getProfissionalId()));
 
-        validarChoqueHorarioMedico(profissional.getId(), dto.getDataHora());
+        int duracaoMinutos = dto.getDuracaoMinutos() != null ? dto.getDuracaoMinutos() : 30;
+        agendaService.validarDisponibilidade(profissional.getId(), dto.getDataHora(),
+                dto.getDataHora().plusMinutes(duracaoMinutos), null, null);
 
         Consulta consulta = criarInstanciaPorModalidade(modalidade, dto);
         consulta.setPaciente(paciente);
         consulta.setProfissional(profissional);
         consulta.setDataHora(dto.getDataHora());
+        consulta.setDuracaoMinutos(duracaoMinutos);
         consulta.setMotivoConsulta(dto.getMotivoConsulta());
         consulta.setObservacoesMedicas(dto.getObservacoesMedicas());
         consulta.setSituacao(SituacaoConsulta.AGENDADA);
@@ -94,6 +100,49 @@ public class ConsultaService {
     public ConsultaDTO buscarPorId(Long id) {
         Consulta consulta = buscarEntidadePorId(id);
         return new ConsultaDTO(consulta);
+    }
+
+    @Transactional
+    public ConsultaDTO atualizarConsulta(Long id, ConsultaRequestDTO dto) {
+        Consulta consulta = buscarEntidadePorId(id);
+        if (consulta.getSituacao() != SituacaoConsulta.AGENDADA
+                && consulta.getSituacao() != SituacaoConsulta.CONFIRMADA) {
+            throw new RegraNegocioException(
+                    "Apenas consultas agendadas ou confirmadas podem ser atualizadas.");
+        }
+        if (dto.getModalidade() != consulta.getModalidade()) {
+            throw new RegraNegocioException(
+                    "A modalidade não pode ser alterada; cancele e crie um novo agendamento.");
+        }
+        if (dto.getDataHora() == null || dto.getDataHora().isBefore(LocalDateTime.now())) {
+            throw new RegraNegocioException("A nova data da consulta deve estar no futuro.");
+        }
+
+        Paciente paciente = pacienteRepository.findById(dto.getPacienteId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Paciente não encontrado com ID: " + dto.getPacienteId()));
+        ProfissionalSaude profissional = profissionalRepository.findById(dto.getProfissionalId())
+                .orElseThrow(() -> new RecursoNaoEncontradoException(
+                        "Profissional de saúde não encontrado com ID: " + dto.getProfissionalId()));
+        int duracaoMinutos = dto.getDuracaoMinutos() != null ? dto.getDuracaoMinutos() : 30;
+
+        agendaService.validarDisponibilidade(profissional.getId(), dto.getDataHora(),
+                dto.getDataHora().plusMinutes(duracaoMinutos), consulta.getId(), null);
+
+        consulta.setPaciente(paciente);
+        consulta.setProfissional(profissional);
+        consulta.setDataHora(dto.getDataHora());
+        consulta.setDuracaoMinutos(duracaoMinutos);
+        consulta.setMotivoConsulta(dto.getMotivoConsulta());
+        consulta.setObservacoesMedicas(dto.getObservacoesMedicas());
+        if (consulta instanceof ConsultaEspecializada especializada) {
+            especializada.setEspecialidade(dto.getEspecialidade());
+        }
+        if (consulta instanceof AtendimentoEmergencia emergencia) {
+            emergencia.setPrioridade(dto.getPrioridade());
+        }
+        consulta.validarCondicoesAtendimento();
+        return new ConsultaDTO(consultaRepository.save(consulta));
     }
 
     @Transactional(readOnly = true)

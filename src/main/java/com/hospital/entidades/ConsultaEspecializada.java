@@ -37,6 +37,11 @@ public class ConsultaEspecializada extends Consulta {
             throw new RegraNegocioException("A especialidade médica é obrigatória para consultas especializadas.");
         }
 
+        if (!(getProfissional() instanceof Especialista)) {
+            throw new RegraNegocioException(
+                    "Uma consulta especializada deve ser realizada por um profissional especialista.");
+        }
+
         if (getProfissional() != null && getProfissional().getEspecialidade() != null) {
             String espProfissional = getProfissional().getEspecialidade().trim();
             if (!espProfissional.equalsIgnoreCase(this.especialidade.trim())) {

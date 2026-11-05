@@ -30,12 +30,7 @@ public class AtendimentoEmergencia extends Consulta {
 
     @Override
     public void validarCondicoesAtendimento() {
-        if (getPaciente() == null) {
-            throw new RegraNegocioException("Paciente é obrigatório para atendimento de emergência.");
-        }
-        if (getProfissional() == null) {
-            throw new RegraNegocioException("Profissional de saúde é obrigatório para atendimento de emergência.");
-        }
+        super.validarCondicoesAtendimento();
         if (this.prioridade == null) {
             throw new RegraNegocioException("A classificação de prioridade é obrigatória para atendimentos de emergência.");
         }

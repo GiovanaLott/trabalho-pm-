@@ -3,25 +3,12 @@ package com.hospital.entidades;
 import com.hospital.excecoes.RegraNegocioException;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Entity
 @Table(name = "consultas")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "modalidade", discriminatorType = DiscriminatorType.STRING)
-public abstract class Consulta {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "paciente_id", nullable = false)
-    private Paciente paciente;
-
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "profissional_id", nullable = false)
-    private ProfissionalSaude profissional;
+public abstract class Consulta extends Atendimento {
 
     @Column(name = "data_hora", nullable = false)
     private LocalDateTime dataHora;
@@ -37,13 +24,12 @@ public abstract class Consulta {
     private SituacaoConsulta situacao = SituacaoConsulta.AGENDADA;
 
     protected Consulta() {
+        super();
     }
 
     public Consulta(Long id, Paciente paciente, ProfissionalSaude profissional, LocalDateTime dataHora,
                     String motivoConsulta, String observacoesMedicas, SituacaoConsulta situacao) {
-        this.id = id;
-        this.paciente = paciente;
-        this.profissional = profissional;
+        super(id, paciente, profissional, dataHora, 30);
         this.dataHora = dataHora;
         this.motivoConsulta = motivoConsulta;
         this.observacoesMedicas = observacoesMedicas;
@@ -62,15 +48,10 @@ public abstract class Consulta {
     }
 
     public void validarCondicoesAtendimento() {
-        if (this.paciente == null) {
-            throw new RegraNegocioException("Paciente é obrigatório para o atendimento.");
+        if (getInicioPrevisto() == null && dataHora != null) {
+            setInicioPrevisto(dataHora);
         }
-        if (this.profissional == null) {
-            throw new RegraNegocioException("Profissional de saúde é obrigatório para o atendimento.");
-        }
-        if (this.dataHora == null) {
-            throw new RegraNegocioException("Data e hora são obrigatórias.");
-        }
+        super.validarCondicoesAtendimento();
     }
 
     public void transitarPara(SituacaoConsulta novaSituacao) {
@@ -153,36 +134,13 @@ public abstract class Consulta {
         transitarPara(SituacaoConsulta.NAO_COMPARECEU);
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public Paciente getPaciente() {
-        return paciente;
-    }
-
-    public void setPaciente(Paciente paciente) {
-        this.paciente = paciente;
-    }
-
-    public ProfissionalSaude getProfissional() {
-        return profissional;
-    }
-
-    public void setProfissional(ProfissionalSaude profissional) {
-        this.profissional = profissional;
-    }
-
     public LocalDateTime getDataHora() {
-        return dataHora;
+        return getInicioPrevisto() != null ? getInicioPrevisto() : dataHora;
     }
 
     public void setDataHora(LocalDateTime dataHora) {
         this.dataHora = dataHora;
+        setInicioPrevisto(dataHora);
     }
 
     public String getMotivoConsulta() {
@@ -232,16 +190,14 @@ public abstract class Consulta {
         }
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Consulta consulta = (Consulta) o;
-        return Objects.equals(id, consulta.id);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id);
+    @PrePersist
+    @PreUpdate
+    private void sincronizarDataHoraLegada() {
+        if (dataHora == null) {
+            dataHora = getInicioPrevisto();
+        }
+        if (getInicioPrevisto() == null) {
+            setInicioPrevisto(dataHora);
+        }
     }
 }

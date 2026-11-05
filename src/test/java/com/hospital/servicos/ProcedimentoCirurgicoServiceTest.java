@@ -41,6 +41,9 @@ class ProcedimentoCirurgicoServiceTest {
     @Mock
     private ProfissionalSaudeRepository profissionalRepository;
 
+    @Mock
+    private AgendaService agendaService;
+
     @InjectMocks
     private ProcedimentoCirurgicoService procedimentoService;
 
@@ -65,6 +68,7 @@ class ProcedimentoCirurgicoServiceTest {
                 null,
                 StatusCirurgia.AGENDADA
         );
+        procedimentoAgendado.setTipo("Cirurgia geral");
     }
 
     @Test
@@ -73,6 +77,8 @@ class ProcedimentoCirurgicoServiceTest {
         ProcedimentoCirurgicoRequestDTO request = new ProcedimentoCirurgicoRequestDTO(
                 "Apendicectomia", 1L, 2L, LocalDate.now().plusDays(3), LocalTime.of(8, 0), "Jejum de 8h"
         );
+        request.setTipo("Cirurgia geral");
+        request.setHorarioFimPrevisto(LocalTime.of(10, 0));
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(2L)).thenReturn(Optional.of(cirurgiao));
@@ -84,6 +90,7 @@ class ProcedimentoCirurgicoServiceTest {
         assertEquals(10L, resultado.getId());
         assertEquals("Apendicectomia", resultado.getDescricao());
         assertEquals(StatusCirurgia.AGENDADA, resultado.getSituacao());
+        assertEquals("Cirurgia geral", resultado.getTipo());
         verify(procedimentoRepository, times(1)).save(any(ProcedimentoCirurgico.class));
     }
 
@@ -93,6 +100,7 @@ class ProcedimentoCirurgicoServiceTest {
         ProcedimentoCirurgicoRequestDTO request = new ProcedimentoCirurgicoRequestDTO(
                 "Apendicectomia", 99L, 2L, LocalDate.now().plusDays(3), LocalTime.of(8, 0), "Jejum"
         );
+        request.setTipo("Cirurgia geral");
 
         when(pacienteRepository.findById(99L)).thenReturn(Optional.empty());
 
@@ -106,6 +114,7 @@ class ProcedimentoCirurgicoServiceTest {
         ProcedimentoCirurgicoRequestDTO request = new ProcedimentoCirurgicoRequestDTO(
                 "Apendicectomia", 1L, 99L, LocalDate.now().plusDays(3), LocalTime.of(8, 0), "Jejum"
         );
+        request.setTipo("Cirurgia geral");
 
         when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
         when(profissionalRepository.findById(99L)).thenReturn(Optional.empty());
@@ -124,6 +133,7 @@ class ProcedimentoCirurgicoServiceTest {
 
         assertNotNull(resultado);
         assertEquals(StatusCirurgia.EM_ANDAMENTO, resultado.getSituacao());
+        assertNotNull(resultado.getInicioEfetivo());
         verify(procedimentoRepository, times(1)).save(procedimentoAgendado);
     }
 
@@ -178,6 +188,7 @@ class ProcedimentoCirurgicoServiceTest {
         assertNotNull(resultado);
         assertEquals(StatusCirurgia.CONCLUIDA, resultado.getSituacao());
         assertEquals(LocalTime.of(10, 30), resultado.getHorarioTermino());
+        assertNotNull(resultado.getFimEfetivo());
         assertEquals("Procedimento realizado sem intercorrências.", resultado.getObservacoesPosOperatorias());
         verify(procedimentoRepository, times(1)).save(procedimentoAgendado);
     }
