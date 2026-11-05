@@ -5,7 +5,9 @@ import java.util.Objects;
 
 @Entity
 @Table(name = "profissionais_saude")
-public class ProfissionalSaude {
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "categoria", discriminatorType = DiscriminatorType.STRING, length = 30)
+public abstract class ProfissionalSaude {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -17,7 +19,7 @@ public class ProfissionalSaude {
     @Column(name = "registro_profissional", nullable = false, unique = true, length = 30)
     private String registroProfissional;
 
-    @Column(nullable = false, length = 80)
+    @Column(length = 80)
     private String especialidade;
 
     @Column(length = 20)
@@ -26,10 +28,10 @@ public class ProfissionalSaude {
     @Column(length = 100)
     private String email;
 
-    public ProfissionalSaude() {
+    protected ProfissionalSaude() {
     }
 
-    public ProfissionalSaude(Long id, String nome, String registroProfissional, String especialidade, String telefone, String email) {
+    protected ProfissionalSaude(Long id, String nome, String registroProfissional, String especialidade, String telefone, String email) {
         this.id = id;
         this.nome = nome;
         this.registroProfissional = registroProfissional;

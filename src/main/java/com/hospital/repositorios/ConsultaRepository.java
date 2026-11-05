@@ -21,6 +21,8 @@ public interface ConsultaRepository extends JpaRepository<Consulta, Long> {
 
     boolean existsByPacienteId(Long pacienteId);
 
+    boolean existsByProfissionalId(Long profissionalId);
+
     @Query("SELECT c FROM Consulta c WHERE TYPE(c) = com.hospital.entidades.AtendimentoEmergencia AND c.situacao IN (com.hospital.entidades.SituacaoConsulta.AGENDADA, com.hospital.entidades.SituacaoConsulta.CONFIRMADA)")
     List<Consulta> findEmergenciasAguardandoAvaliacao();
 

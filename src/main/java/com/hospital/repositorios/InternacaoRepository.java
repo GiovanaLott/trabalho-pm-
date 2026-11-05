@@ -21,4 +21,6 @@ public interface InternacaoRepository extends JpaRepository<Internacao, Long> {
     boolean existsByPacienteId(Long pacienteId);
 
     boolean existsByQuartoId(Long quartoId);
+
+    boolean existsByProfissionalId(Long profissionalId);
 }

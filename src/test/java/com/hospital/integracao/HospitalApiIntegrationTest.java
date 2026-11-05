@@ -76,8 +76,11 @@ class HospitalApiIntegrationTest {
     }
 
     private long criarProfissional(String registro, String especialidade) throws Exception {
-        Map<String, Object> profissional = Map.of("nome", "Dr. Teste " + registro,
-                "registroProfissional", registro, "especialidade", especialidade);
+        Map<String, Object> profissional = Map.of(
+                "nome", "Dr. Teste " + registro,
+                "registroProfissional", registro,
+                "categoria", "ESPECIALISTA",
+                "especialidade", especialidade);
         return idDe(enviar("POST", "/profissionais", profissional).andExpect(status().isCreated()).andReturn());
     }
 

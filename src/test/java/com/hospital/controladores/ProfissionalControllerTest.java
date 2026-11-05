@@ -2,6 +2,7 @@ package com.hospital.controladores;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hospital.dtos.ProfissionalSaudeDTO;
+import com.hospital.entidades.CategoriaProfissional;
 import com.hospital.excecoes.RecursoNaoEncontradoException;
 import com.hospital.servicos.ProfissionalSaudeService;
 import org.junit.jupiter.api.DisplayName;
@@ -18,6 +19,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -34,11 +37,36 @@ class ProfissionalControllerTest {
     private ProfissionalSaudeService profissionalSaudeService;
 
     @Test
+    @DisplayName("Deve exigir e devolver a categoria profissional informada")
+    void deveCadastrarCategoriaExplicitamente() throws Exception {
+        String json = """
+                {
+                  "nome": "Dra. Helena",
+                  "registroProfissional": "CRM-MG-55555",
+                  "categoria": "ESPECIALISTA",
+                  "especialidade": "Cardiologia",
+                  "telefone": "31999990000",
+                  "email": "helena@hospital.com"
+                }
+                """;
+
+        when(profissionalSaudeService.cadastrar(any(ProfissionalSaudeDTO.class)))
+                .thenAnswer(invocacao -> invocacao.getArgument(0));
+
+        mockMvc.perform(post("/profissionais")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.categoria").value("ESPECIALISTA"));
+    }
+
+    @Test
     @DisplayName("Deve cadastrar profissional com sucesso e retornar 201 Created")
     void deveCadastrarProfissionalComSucesso() throws Exception {
         ProfissionalSaudeDTO dto = new ProfissionalSaudeDTO();
         dto.setNome("Dr. Lucas");
         dto.setRegistroProfissional("CRM-MG-12345");
+        dto.setCategoria(CategoriaProfissional.ESPECIALISTA);
         dto.setEspecialidade("Cardiologia");
         dto.setEmail("lucas@hospital.com");
         dto.setTelefone("31988881111");
@@ -47,6 +75,7 @@ class ProfissionalControllerTest {
         salvo.setId(1L);
         salvo.setNome("Dr. Lucas");
         salvo.setRegistroProfissional("CRM-MG-12345");
+        salvo.setCategoria(CategoriaProfissional.ESPECIALISTA);
         salvo.setEspecialidade("Cardiologia");
 
         when(profissionalSaudeService.cadastrar(any(ProfissionalSaudeDTO.class))).thenReturn(salvo);
@@ -67,6 +96,7 @@ class ProfissionalControllerTest {
         p.setId(1L);
         p.setNome("Dra. Ana");
         p.setRegistroProfissional("CRM-MG-99999");
+        p.setCategoria(CategoriaProfissional.ESPECIALISTA);
         p.setEspecialidade("Pediatria");
 
         when(profissionalSaudeService.listarTodos()).thenReturn(List.of(p));
@@ -86,5 +116,39 @@ class ProfissionalControllerTest {
         mockMvc.perform(get("/profissionais/50"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.error").value("Recurso não encontrado"));
+    }
+
+    @Test
+    @DisplayName("Deve pesquisar especialistas por especialidade")
+    void devePesquisarPorEspecialidade() throws Exception {
+        mockMvc.perform(get("/profissionais/especialidade/Cardiologia"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Deve atualizar profissional")
+    void deveAtualizarProfissional() throws Exception {
+        String json = """
+                {
+                  "nome": "Dra. Helena Atualizada",
+                  "registroProfissional": "CRM-MG-55555",
+                  "categoria": "ESPECIALISTA",
+                  "especialidade": "Cardiologia",
+                  "telefone": "31999990001",
+                  "email": "helena@hospital.com"
+                }
+                """;
+
+        mockMvc.perform(put("/profissionais/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(json))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Deve excluir profissional sem vinculos")
+    void deveExcluirProfissional() throws Exception {
+        mockMvc.perform(delete("/profissionais/1"))
+                .andExpect(status().isNoContent());
     }
 }

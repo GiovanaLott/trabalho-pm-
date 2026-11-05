@@ -4,6 +4,7 @@ import com.hospital.dtos.ConclusaoCirurgiaDTO;
 import com.hospital.dtos.ProcedimentoCirurgicoDTO;
 import com.hospital.dtos.ProcedimentoCirurgicoRequestDTO;
 import com.hospital.entidades.Paciente;
+import com.hospital.entidades.Cirurgiao;
 import com.hospital.entidades.ProcedimentoCirurgico;
 import com.hospital.entidades.ProfissionalSaude;
 import com.hospital.entidades.StatusCirurgia;
@@ -50,7 +51,7 @@ class ProcedimentoCirurgicoServiceTest {
     @BeforeEach
     void setUp() {
         paciente = new Paciente(1L, "Carlos Alberto", "111.222.333-44", LocalDate.of(1985, 3, 15), "3199887766", "Rua X", "carlos@email.com");
-        cirurgiao = new ProfissionalSaude(2L, "Dr. Roberto", "CRM99887", "Cirurgião Geral", "3198776655", "roberto@hospital.com");
+        cirurgiao = new Cirurgiao(2L, "Dr. Roberto", "CRM99887", "Cirurgião Geral", "3198776655", "roberto@hospital.com");
 
         procedimentoAgendado = new ProcedimentoCirurgico(
                 10L,

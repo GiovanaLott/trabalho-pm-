@@ -47,7 +47,7 @@ class HistoricoMedicoServiceTest {
     @BeforeEach
     void setUp() {
         paciente = new Paciente(1L, "João Silva", "123.456.789-00", LocalDate.of(1990, 5, 20), "31999998888", "Rua A", "joao@email.com");
-        ProfissionalSaude profissional = new ProfissionalSaude(1L, "Dra. Maria", "CRM12345", "Cardiologia", "31988887777", "maria@hospital.com");
+        ProfissionalSaude profissional = new Especialista(1L, "Dra. Maria", "CRM12345", "Cardiologia", "31988887777", "maria@hospital.com");
         Quarto quarto = new Enfermaria(1L, "101-A", 1, 2, 1, StatusQuarto.DISPONIVEL);
 
         consulta = new ConsultaRotina(10L, paciente, profissional, LocalDateTime.now().minusDays(10), "Check-up", "Sem observações", SituacaoConsulta.CONCLUIDA);

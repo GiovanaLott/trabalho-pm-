@@ -48,7 +48,7 @@ class InternacaoServiceTest {
     @BeforeEach
     void setUp() {
         paciente = new Paciente(1L, "João Silva", "123.456.789-00", LocalDate.of(1990, 5, 20), "31999998888", "Rua A", "joao@email.com");
-        profissional = new ProfissionalSaude(1L, "Dra. Maria", "CRM12345", "Cardiologia", "31988887777", "maria@hospital.com");
+        profissional = new ClinicoGeral(1L, "Dra. Maria", "CRM12345", "31988887777", "maria@hospital.com");
         quarto = new Enfermaria(1L, "101-A", 1, 2, 0, StatusQuarto.DISPONIVEL);
     }
 

@@ -1,8 +1,13 @@
 package com.hospital.dtos;
 
+import com.hospital.entidades.CategoriaProfissional;
+import com.hospital.entidades.Cirurgiao;
+import com.hospital.entidades.ClinicoGeral;
+import com.hospital.entidades.Especialista;
 import com.hospital.entidades.ProfissionalSaude;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 
 public class ProfissionalSaudeDTO {
 
@@ -14,7 +19,9 @@ public class ProfissionalSaudeDTO {
     @NotBlank(message = "O registro profissional é obrigatório")
     private String registroProfissional;
 
-    @NotBlank(message = "A especialidade é obrigatória")
+    @NotNull(message = "A categoria profissional é obrigatória")
+    private CategoriaProfissional categoria;
+
     private String especialidade;
 
     private String telefone;
@@ -38,10 +45,24 @@ public class ProfissionalSaudeDTO {
             this.id = profissional.getId();
             this.nome = profissional.getNome();
             this.registroProfissional = profissional.getRegistroProfissional();
+            this.categoria = identificarCategoria(profissional);
             this.especialidade = profissional.getEspecialidade();
             this.telefone = profissional.getTelefone();
             this.email = profissional.getEmail();
         }
+    }
+
+    private CategoriaProfissional identificarCategoria(ProfissionalSaude profissional) {
+        if (profissional instanceof Especialista) {
+            return CategoriaProfissional.ESPECIALISTA;
+        }
+        if (profissional instanceof Cirurgiao) {
+            return CategoriaProfissional.CIRURGIAO;
+        }
+        if (profissional instanceof ClinicoGeral) {
+            return CategoriaProfissional.CLINICO_GERAL;
+        }
+        return null;
     }
 
     public Long getId() {
@@ -74,6 +95,14 @@ public class ProfissionalSaudeDTO {
 
     public void setEspecialidade(String especialidade) {
         this.especialidade = especialidade;
+    }
+
+    public CategoriaProfissional getCategoria() {
+        return categoria;
+    }
+
+    public void setCategoria(CategoriaProfissional categoria) {
+        this.categoria = categoria;
     }
 
     public String getTelefone() {

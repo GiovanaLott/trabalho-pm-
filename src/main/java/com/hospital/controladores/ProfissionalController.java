@@ -34,4 +34,22 @@ public class ProfissionalController {
     public ResponseEntity<ProfissionalSaudeDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(profissionalService.buscarPorId(id));
     }
+
+    @GetMapping("/especialidade/{especialidade}")
+    public ResponseEntity<List<ProfissionalSaudeDTO>> buscarPorEspecialidade(
+            @PathVariable String especialidade) {
+        return ResponseEntity.ok(profissionalService.buscarPorEspecialidade(especialidade));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<ProfissionalSaudeDTO> atualizar(@PathVariable Long id,
+                                                          @Valid @RequestBody ProfissionalSaudeDTO dto) {
+        return ResponseEntity.ok(profissionalService.atualizar(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        profissionalService.excluir(id);
+        return ResponseEntity.noContent().build();
+    }
 }

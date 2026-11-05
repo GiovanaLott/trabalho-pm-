@@ -211,7 +211,7 @@ class QuartoServiceTest {
     @Test
     void listarInternacoesAtivas_ComSucesso() {
         Paciente paciente = new Paciente(1L, "Ana", "529.982.247-25", java.time.LocalDate.of(1980, 1, 1), null, null, null);
-        ProfissionalSaude medico = new ProfissionalSaude(1L, "Dr. Paulo", "CRM-1", "Clínica Geral", null, null);
+        ProfissionalSaude medico = new ClinicoGeral(1L, "Dr. Paulo", "CRM-1", null, null);
         Internacao ativa = new Internacao(5L, paciente, medico, quarto, LocalDateTime.now(), null, null, null, StatusInternacao.EM_ANDAMENTO);
         when(quartoRepository.findById(1L)).thenReturn(Optional.of(quarto));
         when(internacaoRepository.findByQuartoIdAndStatus(1L, StatusInternacao.EM_ANDAMENTO)).thenReturn(List.of(ativa));

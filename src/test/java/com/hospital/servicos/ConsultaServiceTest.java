@@ -49,7 +49,7 @@ class ConsultaServiceTest {
     @BeforeEach
     void setUp() {
         paciente = new Paciente(1L, "João Silva", "123.456.789-00", LocalDate.of(1990, 5, 20), "31999998888", "Rua A", "joao@email.com");
-        profissional = new ProfissionalSaude(1L, "Dra. Maria", "CRM12345", "Cardiologia", "31988887777", "maria@hospital.com");
+        profissional = new Especialista(1L, "Dra. Maria", "CRM12345", "Cardiologia", "31988887777", "maria@hospital.com");
         dataHoraFutura = LocalDateTime.now().plusDays(2).withHour(14).withMinute(0);
     }
 

@@ -1,6 +1,9 @@
 package com.hospital.servicos;
 
 import com.hospital.dtos.ProfissionalSaudeDTO;
+import com.hospital.entidades.CategoriaProfissional;
+import com.hospital.entidades.Cirurgiao;
+import com.hospital.entidades.Especialista;
 import com.hospital.entidades.ProfissionalSaude;
 import com.hospital.excecoes.RecursoNaoEncontradoException;
 import com.hospital.excecoes.RegraNegocioException;
@@ -33,7 +36,7 @@ class ProfissionalSaudeServiceTest {
 
     @BeforeEach
     void setUp() {
-        profissional = new ProfissionalSaude(1L, "Dra. Maria Santos", "CRM12345", "Cardiologia", "31988887777", "maria@hospital.com");
+        profissional = new Especialista(1L, "Dra. Maria Santos", "CRM12345", "Cardiologia", "31988887777", "maria@hospital.com");
         profissionalDTO = new ProfissionalSaudeDTO(profissional);
     }
 
@@ -48,6 +51,40 @@ class ProfissionalSaudeServiceTest {
         assertEquals(profissional.getNome(), resultado.getNome());
         assertEquals(profissional.getRegistroProfissional(), resultado.getRegistroProfissional());
         verify(profissionalRepository, times(1)).save(any(ProfissionalSaude.class));
+    }
+
+    @Test
+    void cadastrar_DeveCriarACategoriaInformada() {
+        ProfissionalSaudeDTO dto = new ProfissionalSaudeDTO();
+        dto.setNome("Dr. Roberto");
+        dto.setRegistroProfissional("CRM-CIR-1");
+        dto.setCategoria(CategoriaProfissional.CIRURGIAO);
+        dto.setEspecialidade("Cirurgia Geral");
+
+        when(profissionalRepository.existsByRegistroProfissional("CRM-CIR-1")).thenReturn(false);
+        when(profissionalRepository.save(any(ProfissionalSaude.class)))
+                .thenAnswer(invocacao -> invocacao.getArgument(0));
+
+        ProfissionalSaudeDTO resultado = profissionalService.cadastrar(dto);
+
+        assertEquals(CategoriaProfissional.CIRURGIAO, resultado.getCategoria());
+        verify(profissionalRepository).save(isA(Cirurgiao.class));
+    }
+
+    @Test
+    void cadastrar_DeveExigirEspecialidadeSomenteParaEspecialista() {
+        ProfissionalSaudeDTO dto = new ProfissionalSaudeDTO();
+        dto.setNome("Dra. Ana");
+        dto.setRegistroProfissional("CRM-ESP-1");
+        dto.setCategoria(CategoriaProfissional.ESPECIALISTA);
+
+        when(profissionalRepository.existsByRegistroProfissional("CRM-ESP-1")).thenReturn(false);
+
+        RegraNegocioException erro = assertThrows(RegraNegocioException.class,
+                () -> profissionalService.cadastrar(dto));
+
+        assertTrue(erro.getMessage().contains("especialidade"));
+        verify(profissionalRepository, never()).save(any());
     }
 
     @Test
