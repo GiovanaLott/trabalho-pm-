@@ -14,7 +14,7 @@ O **Sistema de Informação Hospitalar** é uma aplicação desenvolvida em **Ja
 * Controle de **internações hospitalares** e altas médicas;
 * Gestão de **procedimentos cirúrgicos**;
 * Consulta unificada do **histórico médico / prontuário** dos pacientes;
-* Interface web conceitual (**front-end sem funcionalidade** para a Sprint 1).
+* Interface web responsiva e funcional, integrada aos endpoints das Sprints 1 e 2.
 
 ---
 
@@ -22,10 +22,10 @@ O **Sistema de Informação Hospitalar** é uma aplicação desenvolvida em **Ja
 
 A Sprint 1 contempla os seguintes artefatos exigidos:
 
-1. **Front-end (Telas sem funcionalidade)**:
+1. **Front-end funcional**:
    * Interface visual construída em HTML5 e CSS3 (localizada em `src/main/resources/static/`).
    * Acessível diretamente pelo navegador em `http://localhost:8080/` ao executar a aplicação Spring Boot, ou abrindo diretamente o arquivo `index.html`.
-   * Contempla telas conceituais para: *Visão Geral*, *Pacientes*, *Profissionais*, *Consultas*, *Internações*, *Quartos* e *Histórico Médico*.
+   * Contempla telas integradas para: *Visão Geral*, *Pacientes*, *Profissionais*, *Consultas*, *Internações*, *Quartos* e *Histórico Médico*.
 
 2. **Diagrama de Classes**:
    * Documento com representação visual em Mermaid e código PlantUML disponível em [`docs/DIAGRAMA_CLASSES.md`](docs/DIAGRAMA_CLASSES.md).
@@ -149,6 +149,9 @@ src/main/java/com/hospital/
 * `POST /profissionais` — Cadastrar um novo profissional de saúde.
 * `GET /profissionais` — Listar todos os profissionais de saúde.
 * `GET /profissionais/{id}` — Buscar profissional por ID.
+* `GET /profissionais/especialidade/{especialidade}` — Pesquisar especialistas por área.
+* `PUT /profissionais/{id}` — Atualizar os dados do profissional sem alterar sua categoria.
+* `DELETE /profissionais/{id}` — Excluir profissional somente quando não houver histórico associado.
 
 ### 🚪 Quartos (`/quartos`)
 * `POST /quartos` — Cadastrar um novo quarto. Corpo: `numeroIdentificacao`, `andar`, `capacidadeMaxima`, `tipo` (padrão `ENFERMARIA`) e, conforme o tipo, `permiteAcompanhante` ou `tipoIsolamento`.
@@ -177,16 +180,20 @@ src/main/java/com/hospital/
 * `PUT /consultas/{id}/finalizar` — Alias/compatibilidade para conclusão do atendimento.
 * `PUT /consultas/{id}/nao-compareceu` — Registrar não comparecimento do paciente.
 * `PUT /consultas/{id}/cancelar` — Cancelar uma consulta.
+* `PUT /consultas/{id}` — Atualizar os dados de uma consulta ainda não finalizada.
+* `DELETE /consultas/{id}` — Cancelar logicamente e preservar o histórico.
 
 ### 🏥 Internações (`/internacoes`)
 * `POST /internacoes` — Registrar internação hospitalar.
 * `GET /internacoes` — Listar todas as internações.
 * `GET /internacoes/em-andamento` — Listar internações ativas.
+* `GET /internacoes/status/{status}` — Filtrar por situação, inclusive `CANCELADA`.
 * `GET /internacoes/{id}` — Buscar internação por ID.
 * `GET /internacoes/paciente/{pacienteId}` — Listar internações de um paciente.
 * `PUT /internacoes/{id}/alta` — Dar alta médica ao paciente liberando o leito.
 * `PUT /internacoes/{id}/cancelar` — Cancelar internação ativa liberando o leito.
 * `PUT /internacoes/{id}` — Atualizar observações e previsão de alta da internação.
+* `DELETE /internacoes/{id}` — Cancelar logicamente e preservar o histórico.
 
 ### 🔬 Procedimentos Cirúrgicos (`/procedimentos`)
 * `POST /procedimentos` — Agendar novo procedimento cirúrgico.
@@ -210,7 +217,7 @@ src/main/java/com/hospital/
 * **PostgreSQL (Supabase)** (Banco de dados relacional em produção/desenvolvimento — justificativa da escolha em [`docs/BANCO_DE_DADOS.md`](docs/BANCO_DE_DADOS.md))
 * **H2 Database** (Banco de dados em memória para execução isolada e rápida da suíte de testes)
 * **JUnit 5, Mockito & MockMvc** (Testes unitários de serviços e testes automatizados de integração da API REST)
-* **HTML5 / CSS3 / JavaScript** (Front-end conceitual sem funcionalidade)
+* **HTML5 / CSS3 / JavaScript** (front-end responsivo integrado à API REST)
 * **Maven** (Gerenciador de dependências e build)
 
 ---

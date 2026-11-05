@@ -37,7 +37,8 @@ O grupo escolheu **PostgreSQL**, hospedado no **Supabase**, pelos motivos abaixo
 
 ## 3. Esquema
 
-As tabelas são criadas e atualizadas pelo Hibernate (`spring.jpa.hibernate.ddl-auto=update`).
+No perfil PostgreSQL, o Hibernate apenas valida o esquema (`spring.jpa.hibernate.ddl-auto=validate`).
+As alterações são feitas pelo script versionado para impedir mudanças automáticas no banco compartilhado.
 
 | Tabela | Observações |
 |---|---|
@@ -55,9 +56,7 @@ a API responde `400` com a explicação. Para retirar um quarto de uso, ele deve
 
 ## 4. Atualizando um banco criado em versões anteriores
 
-O `ddl-auto=update` cria colunas novas, mas não preenche colunas obrigatórias em tabelas que já
-têm linhas, não renomeia colunas e não atualiza as restrições `CHECK` que ele gera para os enums.
-Por isso, um banco do Supabase criado antes desta sprint precisa do script
+Um banco do Supabase criado antes desta sprint precisa do script
 [`docs/sql/ajuste_banco_sprint2.sql`](sql/ajuste_banco_sprint2.sql) (executar no SQL Editor do Supabase).
-O script é idempotente. Se o banco não tiver dados importantes, basta apagar as tabelas e deixar o
-Hibernate recriá-las.
+O script é idempotente e não apaga registros. Antes de iniciar a aplicação, classifique manualmente
+todos os profissionais legados listados pelo próprio script; o código não deduz categorias clínicas.

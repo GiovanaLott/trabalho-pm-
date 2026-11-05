@@ -68,7 +68,32 @@
 ## Quarto (abstrata)
 
 - Responsabilidades: controlar capacidade e ocupação; impedir lotação; validar manutenção e liberar leito na alta/cancelamento.
-- Colaborações: `Enfermaria`, `Apartamento`, `UTI`, `QuartoIsolamento`, `Internacao`.
+- Colaborações: `Enfermaria`, `Apartamento`, `UnidadeTerapiaIntensiva`, `QuartoIsolamento`, `Internacao`.
+
+## Enfermaria
+
+- Responsabilidades: representar quarto coletivo e limitar a capacidade entre dois e oito leitos.
+- Colaborações: `Quarto`, `Internacao`.
+
+## Apartamento
+
+- Responsabilidades: representar quarto privativo, controlar até dois leitos e informar se aceita acompanhante.
+- Colaborações: `Quarto`, `Internacao`.
+
+## UnidadeTerapiaIntensiva
+
+- Responsabilidades: representar leito de UTI e exigir justificativa clínica para a admissão.
+- Colaborações: `Quarto`, `Internacao`.
+
+## QuartoIsolamento
+
+- Responsabilidades: manter um único leito e exigir a classificação do isolamento.
+- Colaborações: `Quarto`, `TipoIsolamento`, `Internacao`.
+
+## Situações e classificações do domínio
+
+- Responsabilidades: restringir valores e transições por meio de `CategoriaProfissional`, `SituacaoConsulta`, `StatusCirurgia`, `StatusInternacao`, `StatusQuarto`, `PrioridadeAtendimento`, `TipoQuarto` e `TipoIsolamento`.
+- Colaborações: entidades e serviços que validam cada fluxo.
 
 ## HistoricoMedico
 

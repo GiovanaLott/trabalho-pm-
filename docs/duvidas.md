@@ -12,6 +12,8 @@ O banco PostgreSQL/Supabase pode conter profissionais criados antes da hierarqui
 
 **Decisão provisória:** não classificar profissionais existentes com base no texto da especialidade, no formato do registro ou nos procedimentos vinculados. A migração da hierarquia somente será aplicada ao banco compartilhado depois de os registros serem identificados e classificados pelo grupo. Novos cadastros deverão informar explicitamente a categoria.
 
+**Proteção operacional:** o perfil PostgreSQL usa `ddl-auto=validate`, portanto o Hibernate não altera o esquema. O script lista os registros sem categoria e a aplicação só deve ser iniciada no banco compartilhado depois que essa lista estiver vazia.
+
 ## 2. Exclusão de consultas e internações
 
 O requisito geral solicita CRUD, mas o sistema também deve preservar o histórico médico do paciente.

@@ -1,8 +1,9 @@
 -- =============================================================================
 -- Ajuste do banco PostgreSQL (Supabase) para o modelo da Sprint 2.
 --
--- Por que é necessário: o Hibernate está com ddl-auto=update, que CRIA colunas
--- novas mas não consegue (1) preencher colunas obrigatórias em tabelas que já têm
+-- Por que é necessário: o perfil PostgreSQL usa ddl-auto=validate para nunca
+-- alterar automaticamente o banco compartilhado. Este script cria as colunas
+-- novas e preenche colunas obrigatórias em tabelas que já têm
 -- linhas, (2) atualizar as restrições CHECK que ele mesmo gera para os enums nem
 -- (3) renomear colunas. Sem este ajuste, um banco criado nas versões anteriores
 -- falha ao gravar quartos (coluna "tipo"), consultas (coluna "modalidade" e a troca
@@ -81,6 +82,12 @@ ALTER TABLE profissionais_saude ADD COLUMN IF NOT EXISTS categoria VARCHAR(30);
 
 -- IMPORTANTE: preencher explicitamente a categoria dos registros legados antes
 -- de tornar a coluna obrigatória. Não inferir pelo texto da especialidade.
+-- Enquanto a consulta abaixo retornar linhas, não inicie a aplicação contra
+-- este banco: uma entidade abstrata não pode materializar discriminador nulo.
+SELECT id, nome, registro_profissional, especialidade
+  FROM profissionais_saude
+ WHERE categoria IS NULL
+ ORDER BY id;
 -- Exemplos (substitua pelos registros reais aprovados pelo grupo):
 -- UPDATE profissionais_saude SET categoria = 'CLINICO_GERAL' WHERE id IN (...);
 -- UPDATE profissionais_saude SET categoria = 'ESPECIALISTA' WHERE id IN (...);

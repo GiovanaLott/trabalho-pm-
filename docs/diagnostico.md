@@ -12,7 +12,7 @@ Atualizado em 05/11/2026. Este documento registra o resultado da correção exec
 | Base comum de atendimentos | Concluído | `Atendimento` como `@MappedSuperclass`; consultas e cirurgias em tabelas distintas |
 | Quatro modalidades e validações | Concluído | rotina, especializada, emergência e cirurgia com validação polimórfica |
 | Cirurgia completa | Concluído | tipo, intervalo previsto, início/fim efetivos, observações e cirurgião obrigatório |
-| Conflitos de agenda | Concluído | `AgendaService` cruza intervalos de consultas e cirurgias; adjacência permitida e cancelados ignorados |
+| Conflitos de agenda | Concluído | `AgendaService` cruza intervalos previstos e efetivos de consultas e cirurgias; adjacência permitida e cancelados ignorados |
 | CRUD de pacientes | Concluído | criar, listar/pesquisar, buscar, atualizar e excluir quando não há histórico |
 | CRUD de profissionais | Concluído | criar, listar, buscar, atualizar e excluir quando não há atendimentos |
 | CRUD de consultas | Concluído | criar, ler, atualizar e `DELETE` por cancelamento lógico |
@@ -27,6 +27,7 @@ Atualizado em 05/11/2026. Este documento registra o resultado da correção exec
 ## Compatibilidade e preservação
 
 - PostgreSQL/Supabase continua sendo o banco principal; H2 permanece somente para testes e demonstração local.
+- O perfil PostgreSQL usa `ddl-auto=validate`; alterações do esquema compartilhado dependem do script versionado e não são executadas automaticamente.
 - As colunas legadas `data_hora`, `data_cirurgia`, `horario_inicio_previsto` e `horario_termino` foram preservadas e sincronizadas com os novos campos comuns.
 - `StatusConsulta` foi mantido como compatibilidade; `SituacaoConsulta` continua sendo o estado persistido atual.
 - Consultas e internações não são removidas fisicamente pela operação REST de exclusão: passam para `CANCELADA`.
@@ -39,10 +40,9 @@ As dúvidas que dependem do grupo estão em [`duvidas.md`](duvidas.md). A princi
 
 ## Verificações executadas
 
+- `mvn clean test`: 194 testes em 27 suítes, 0 falhas, 0 erros e 0 ignorados.
 - Testes focados da hierarquia, validações, agenda, serviços e controladores.
 - Aplicação iniciada com o perfil `h2`, sem acesso ou alteração no Supabase.
 - Navegador real em 1440 × 1000 e 390 × 844, sem rolagem horizontal no celular.
 - Fluxo manual pelo site: cadastro de paciente, especialista e quarto; agendamento; conflito de horário retornando HTTP 409; internação; prontuário consolidado.
 - Inspeção visual automatizada das telas em 1440, 768 e 390 px: nenhuma falha de interface.
-
-O resultado final de `mvn clean test` deve ser consultado na entrega/commit final; a suíte é sempre reexecutada após a última alteração de código e documentação.

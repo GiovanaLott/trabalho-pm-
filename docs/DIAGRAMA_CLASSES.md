@@ -75,11 +75,11 @@ class Quarto {
 }
 class Enfermaria
 class Apartamento
-class UTI
+class UnidadeTerapiaIntensiva
 class QuartoIsolamento
 Quarto <|-- Enfermaria
 Quarto <|-- Apartamento
-Quarto <|-- UTI
+Quarto <|-- UnidadeTerapiaIntensiva
 Quarto <|-- QuartoIsolamento
 
 class HistoricoMedico {
