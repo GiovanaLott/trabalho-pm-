@@ -183,6 +183,21 @@ class InternacaoServiceTest {
     }
 
     @Test
+    void atualizarInformacoes_DeveRejeitarAltaPrevistaAnteriorAEntrada() {
+        LocalDateTime entrada = LocalDateTime.now().minusDays(2);
+        Internacao internacao = new Internacao(10L, paciente, profissional, quarto, entrada,
+                LocalDate.now().plusDays(2), null, "Observação inicial", StatusInternacao.EM_ANDAMENTO);
+        com.hospital.dtos.InternacaoUpdateDTO updateDTO = new com.hospital.dtos.InternacaoUpdateDTO(
+                entrada.toLocalDate().minusDays(1), "Nova observação");
+
+        when(internacaoRepository.findById(10L)).thenReturn(Optional.of(internacao));
+
+        assertThrows(com.hospital.excecoes.RegraNegocioException.class,
+                () -> internacaoService.atualizarInformacoes(10L, updateDTO));
+        verify(internacaoRepository, never()).save(any(Internacao.class));
+    }
+
+    @Test
     void realizarInternacao_DeveLancarExcecao_QuandoUtiSemJustificativa() {
         Quarto uti = new UnidadeTerapiaIntensiva(2L, "UTI-1", 3, 4, 0, StatusQuarto.DISPONIVEL);
         InternacaoRequestDTO dto = new InternacaoRequestDTO(1L, 1L, 2L, LocalDateTime.now(), LocalDate.now().plusDays(5), null);

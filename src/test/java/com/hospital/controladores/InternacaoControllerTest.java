@@ -114,6 +114,19 @@ class InternacaoControllerTest {
     }
 
     @Test
+    @DisplayName("Deve filtrar internações por status, inclusive canceladas")
+    void deveListarInternacoesPorStatus() throws Exception {
+        InternacaoDTO dto = new InternacaoDTO();
+        dto.setId(1L);
+        dto.setStatus(StatusInternacao.CANCELADA);
+        when(internacaoService.listarPorStatus(StatusInternacao.CANCELADA)).thenReturn(List.of(dto));
+
+        mockMvc.perform(get("/internacoes/status/CANCELADA"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].status").value("CANCELADA"));
+    }
+
+    @Test
     @DisplayName("Deve cancelar internação e retornar 200 OK")
     void deveCancelarInternacaoComSucesso() throws Exception {
         InternacaoDTO response = new InternacaoDTO();

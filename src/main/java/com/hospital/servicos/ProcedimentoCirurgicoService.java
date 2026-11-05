@@ -88,8 +88,12 @@ public class ProcedimentoCirurgicoService {
             throw new RegraNegocioException("Apenas cirurgias agendadas podem ser iniciadas.");
         }
 
+        LocalDateTime inicioEfetivo = LocalDateTime.now();
+        LocalDateTime fimEstimado = inicioEfetivo.plusMinutes(procedimento.getDuracaoMinutos());
+        agendaService.validarDisponibilidade(procedimento.getCirurgiao().getId(), inicioEfetivo,
+                fimEstimado, null, procedimento.getId());
         procedimento.setSituacao(StatusCirurgia.EM_ANDAMENTO);
-        procedimento.setInicioEfetivo(LocalDateTime.now());
+        procedimento.setInicioEfetivo(inicioEfetivo);
         ProcedimentoCirurgico atualizado = procedimentoRepository.save(procedimento);
         return new ProcedimentoCirurgicoDTO(atualizado);
     }

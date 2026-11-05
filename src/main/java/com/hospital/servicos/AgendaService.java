@@ -46,7 +46,7 @@ public class AgendaService {
                 .filter(procedimento -> !Objects.equals(procedimento.getId(), procedimentoIgnoradoId))
                 .filter(procedimento -> procedimento.getSituacao() != StatusCirurgia.CANCELADA)
                 .anyMatch(procedimento -> sobrepoe(inicio, fim,
-                        procedimento.getInicioPrevisto(), procedimento.getFimPrevisto()));
+                        inicioConsiderado(procedimento), fimConsiderado(procedimento)));
 
         if (conflitoConsulta || conflitoCirurgia) {
             throw new ChoqueHorarioException(
@@ -61,5 +61,21 @@ public class AgendaService {
         return inicioExistente != null && fimExistente != null
                 && inicioExistente.isBefore(fimNovo)
                 && fimExistente.isAfter(inicioNovo);
+    }
+
+    private LocalDateTime inicioConsiderado(ProcedimentoCirurgico procedimento) {
+        return procedimento.getInicioEfetivo() != null
+                ? procedimento.getInicioEfetivo()
+                : procedimento.getInicioPrevisto();
+    }
+
+    private LocalDateTime fimConsiderado(ProcedimentoCirurgico procedimento) {
+        if (procedimento.getFimEfetivo() != null) {
+            return procedimento.getFimEfetivo();
+        }
+        LocalDateTime inicio = inicioConsiderado(procedimento);
+        return inicio != null && procedimento.getDuracaoMinutos() != null
+                ? inicio.plusMinutes(procedimento.getDuracaoMinutos())
+                : procedimento.getFimPrevisto();
     }
 }

@@ -72,6 +72,31 @@ class AgendaServiceTest {
     }
 
     @Test
+    void deveUsarIntervaloEfetivoDaCirurgiaEmAndamento() {
+        ProcedimentoCirurgico cirurgia = cirurgia(inicio.minusHours(2), 120, StatusCirurgia.EM_ANDAMENTO);
+        cirurgia.setInicioEfetivo(inicio);
+        when(consultaRepository.findByProfissionalId(7L)).thenReturn(List.of());
+        when(procedimentoRepository.findByCirurgiaoId(7L)).thenReturn(List.of(cirurgia));
+
+        assertThrows(ChoqueHorarioException.class,
+                () -> agendaService.validarDisponibilidade(7L, inicio.plusMinutes(30),
+                        inicio.plusMinutes(60), null, null));
+    }
+
+    @Test
+    void deveUsarFimEfetivoDaCirurgiaConcluida() {
+        ProcedimentoCirurgico cirurgia = cirurgia(inicio.minusHours(3), 60, StatusCirurgia.CONCLUIDA);
+        cirurgia.setInicioEfetivo(inicio.minusHours(1));
+        cirurgia.setFimEfetivo(inicio.plusHours(1));
+        when(consultaRepository.findByProfissionalId(7L)).thenReturn(List.of());
+        when(procedimentoRepository.findByCirurgiaoId(7L)).thenReturn(List.of(cirurgia));
+
+        assertThrows(ChoqueHorarioException.class,
+                () -> agendaService.validarDisponibilidade(7L, inicio.plusMinutes(30),
+                        inicio.plusMinutes(90), null, null));
+    }
+
+    @Test
     void devePermitirIntervalosAdjacentesECancelados() {
         ConsultaRotina cancelada = new ConsultaRotina(10L, paciente, profissional, inicio,
                 "Retorno", null, SituacaoConsulta.CANCELADA);

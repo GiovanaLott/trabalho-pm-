@@ -133,6 +133,10 @@ public class InternacaoService {
                 internacao.setObservacoes(dto.getObservacoes());
             }
             if (dto.getDataPrevistaAlta() != null) {
+                if (dto.getDataPrevistaAlta().isBefore(internacao.getDataEntrada().toLocalDate())) {
+                    throw new RegraNegocioException(
+                            "A data prevista de alta não pode ser anterior à data de entrada.");
+                }
                 internacao.setDataPrevistaAlta(dto.getDataPrevistaAlta());
             }
         }
@@ -150,7 +154,12 @@ public class InternacaoService {
 
     @Transactional(readOnly = true)
     public List<InternacaoDTO> listarEmAndamento() {
-        return internacaoRepository.findByStatus(StatusInternacao.EM_ANDAMENTO).stream()
+        return listarPorStatus(StatusInternacao.EM_ANDAMENTO);
+    }
+
+    @Transactional(readOnly = true)
+    public List<InternacaoDTO> listarPorStatus(StatusInternacao status) {
+        return internacaoRepository.findByStatus(status).stream()
                 .map(InternacaoDTO::new)
                 .collect(Collectors.toList());
     }

@@ -134,6 +134,7 @@ class ProcedimentoCirurgicoServiceTest {
         assertNotNull(resultado);
         assertEquals(StatusCirurgia.EM_ANDAMENTO, resultado.getSituacao());
         assertNotNull(resultado.getInicioEfetivo());
+        verify(agendaService).validarDisponibilidade(eq(2L), any(), any(), isNull(), eq(10L));
         verify(procedimentoRepository, times(1)).save(procedimentoAgendado);
     }
 

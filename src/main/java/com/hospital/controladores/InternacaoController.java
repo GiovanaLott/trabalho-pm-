@@ -2,6 +2,7 @@ package com.hospital.controladores;
 
 import com.hospital.dtos.InternacaoDTO;
 import com.hospital.dtos.InternacaoRequestDTO;
+import com.hospital.entidades.StatusInternacao;
 import com.hospital.servicos.InternacaoService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -34,6 +35,11 @@ public class InternacaoController {
     @GetMapping("/em-andamento")
     public ResponseEntity<List<InternacaoDTO>> listarEmAndamento() {
         return ResponseEntity.ok(internacaoService.listarEmAndamento());
+    }
+
+    @GetMapping("/status/{status}")
+    public ResponseEntity<List<InternacaoDTO>> listarPorStatus(@PathVariable StatusInternacao status) {
+        return ResponseEntity.ok(internacaoService.listarPorStatus(status));
     }
 
     @GetMapping("/{id}")
