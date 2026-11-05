@@ -80,8 +80,8 @@ class InternacaoControllerTest {
         mockMvc.perform(post("/internacoes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Violação de regra de negócio"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Conflito de regra de negócio"))
                 .andExpect(jsonPath("$.message").value("O quarto atingiu sua capacidade máxima de leitos."));
     }
 

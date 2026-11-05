@@ -49,7 +49,7 @@ class InternacaoServiceTest {
     void setUp() {
         paciente = new Paciente(1L, "João Silva", "123.456.789-00", LocalDate.of(1990, 5, 20), "31999998888", "Rua A", "joao@email.com");
         profissional = new ProfissionalSaude(1L, "Dra. Maria", "CRM12345", "Cardiologia", "31988887777", "maria@hospital.com");
-        quarto = new Quarto(1L, "101-A", 1, 2, 0, StatusQuarto.DISPONIVEL);
+        quarto = new Enfermaria(1L, "101-A", 1, 2, 0, StatusQuarto.DISPONIVEL);
     }
 
     @Test
@@ -180,5 +180,60 @@ class InternacaoServiceTest {
         assertNotNull(resultado);
         assertEquals("Nova observação", resultado.getObservacoes());
         assertEquals(LocalDate.now().plusDays(5), resultado.getDataPrevistaAlta());
+    }
+
+    @Test
+    void realizarInternacao_DeveLancarExcecao_QuandoUtiSemJustificativa() {
+        Quarto uti = new UnidadeTerapiaIntensiva(2L, "UTI-1", 3, 4, 0, StatusQuarto.DISPONIVEL);
+        InternacaoRequestDTO dto = new InternacaoRequestDTO(1L, 1L, 2L, LocalDateTime.now(), LocalDate.now().plusDays(5), null);
+
+        when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
+        when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
+        when(quartoRepository.findById(2L)).thenReturn(Optional.of(uti));
+        when(internacaoRepository.existsByPacienteIdAndStatus(1L, StatusInternacao.EM_ANDAMENTO)).thenReturn(false);
+
+        assertThrows(com.hospital.excecoes.RegraNegocioException.class, () -> internacaoService.realizarInternacao(dto));
+        assertEquals(0, uti.getOcupacaoAtual());
+        verify(internacaoRepository, never()).save(any(Internacao.class));
+    }
+
+    @Test
+    void realizarInternacao_DeveLancarExcecao_QuandoQuartoEmManutencao() {
+        quarto.colocarEmManutencao();
+        InternacaoRequestDTO dto = new InternacaoRequestDTO(1L, 1L, 1L, LocalDateTime.now(), LocalDate.now().plusDays(5), "Observação");
+
+        when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
+        when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
+        when(quartoRepository.findById(1L)).thenReturn(Optional.of(quarto));
+        when(internacaoRepository.existsByPacienteIdAndStatus(1L, StatusInternacao.EM_ANDAMENTO)).thenReturn(false);
+
+        assertThrows(com.hospital.excecoes.QuartoIndisponivelException.class, () -> internacaoService.realizarInternacao(dto));
+        verify(internacaoRepository, never()).save(any(Internacao.class));
+    }
+
+    @Test
+    void realizarInternacao_DeveLancarExcecao_QuandoAltaPrevistaAntesDaEntrada() {
+        InternacaoRequestDTO dto = new InternacaoRequestDTO(1L, 1L, 1L, LocalDateTime.now(), LocalDate.now().minusDays(1), "Observação");
+
+        when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
+        when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
+        when(quartoRepository.findById(1L)).thenReturn(Optional.of(quarto));
+        when(internacaoRepository.existsByPacienteIdAndStatus(1L, StatusInternacao.EM_ANDAMENTO)).thenReturn(false);
+
+        assertThrows(com.hospital.excecoes.RegraNegocioException.class, () -> internacaoService.realizarInternacao(dto));
+        assertEquals(0, quarto.getOcupacaoAtual());
+    }
+
+    @Test
+    void realizarInternacao_DeveLancarExcecao_QuandoPacienteJaInternado() {
+        InternacaoRequestDTO dto = new InternacaoRequestDTO(1L, 1L, 1L, LocalDateTime.now(), LocalDate.now().plusDays(5), "Observação");
+
+        when(pacienteRepository.findById(1L)).thenReturn(Optional.of(paciente));
+        when(profissionalRepository.findById(1L)).thenReturn(Optional.of(profissional));
+        when(quartoRepository.findById(1L)).thenReturn(Optional.of(quarto));
+        when(internacaoRepository.existsByPacienteIdAndStatus(1L, StatusInternacao.EM_ANDAMENTO)).thenReturn(true);
+
+        assertThrows(com.hospital.excecoes.RegraNegocioException.class, () -> internacaoService.realizarInternacao(dto));
+        assertEquals(0, quarto.getOcupacaoAtual());
     }
 }

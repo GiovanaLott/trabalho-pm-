@@ -115,8 +115,8 @@ class ConsultaControllerTest {
         mockMvc.perform(post("/consultas")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.error").value("Violação de regra de negócio"))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.error").value("Conflito de regra de negócio"))
                 .andExpect(jsonPath("$.message").value("O profissional de saúde já possui uma consulta agendada próxima a este horário."));
     }
 
