@@ -61,4 +61,10 @@ public class InternacaoController {
                                                               @RequestBody com.hospital.dtos.InternacaoUpdateDTO dto) {
         return ResponseEntity.ok(internacaoService.atualizarInformacoes(id, dto));
     }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelarInternacaoLogicamente(@PathVariable Long id) {
+        internacaoService.cancelarInternacao(id);
+        return ResponseEntity.noContent().build();
+    }
 }

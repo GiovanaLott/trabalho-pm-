@@ -26,6 +26,8 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.verify;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -191,6 +193,33 @@ class ConsultaControllerTest {
         mockMvc.perform(put("/consultas/5/cancelar"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.situacao").value("CANCELADA"));
+    }
+
+    @Test
+    @DisplayName("Deve atualizar consulta agendada")
+    void deveAtualizarConsultaComSucesso() throws Exception {
+        ConsultaRequestDTO request = new ConsultaRequestDTO(1L, 2L,
+                LocalDateTime.of(2030, 2, 20, 9, 0), "Retorno", "Sem intercorrências");
+        ConsultaDTO response = new ConsultaDTO();
+        response.setId(5L);
+        response.setMotivoConsulta("Retorno");
+
+        when(consultaService.atualizarConsulta(eq(5L), any(ConsultaRequestDTO.class))).thenReturn(response);
+
+        mockMvc.perform(put("/consultas/5")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.motivoConsulta").value("Retorno"));
+    }
+
+    @Test
+    @DisplayName("DELETE deve cancelar consulta sem remover o histórico")
+    void deveCancelarConsultaLogicamenteComDelete() throws Exception {
+        mockMvc.perform(delete("/consultas/5"))
+                .andExpect(status().isNoContent());
+
+        verify(consultaService).cancelarConsulta(5L);
     }
 
     @Test

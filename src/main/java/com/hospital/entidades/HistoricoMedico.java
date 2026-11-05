@@ -12,6 +12,7 @@ public class HistoricoMedico {
     private Paciente paciente;
     private List<Consulta> consultas = new ArrayList<>();
     private List<Internacao> internacoes = new ArrayList<>();
+    private List<ProcedimentoCirurgico> procedimentosCirurgicos = new ArrayList<>();
 
     public HistoricoMedico() {
     }
@@ -52,5 +53,18 @@ public class HistoricoMedico {
 
     public void adicionarInternacao(Internacao internacao) {
         this.internacoes.add(internacao);
+    }
+
+    public List<ProcedimentoCirurgico> getProcedimentosCirurgicos() {
+        return procedimentosCirurgicos;
+    }
+
+    public void setProcedimentosCirurgicos(List<ProcedimentoCirurgico> procedimentosCirurgicos) {
+        this.procedimentosCirurgicos = procedimentosCirurgicos != null
+                ? procedimentosCirurgicos : new ArrayList<>();
+    }
+
+    public void adicionarProcedimentoCirurgico(ProcedimentoCirurgico procedimento) {
+        this.procedimentosCirurgicos.add(procedimento);
     }
 }

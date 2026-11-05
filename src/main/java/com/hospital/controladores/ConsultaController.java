@@ -38,6 +38,18 @@ public class ConsultaController {
         return ResponseEntity.ok(consultaService.buscarPorId(id));
     }
 
+    @PutMapping("/{id}")
+    public ResponseEntity<ConsultaDTO> atualizarConsulta(@PathVariable Long id,
+                                                         @Valid @RequestBody ConsultaRequestDTO dto) {
+        return ResponseEntity.ok(consultaService.atualizarConsulta(id, dto));
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> cancelarConsultaLogicamente(@PathVariable Long id) {
+        consultaService.cancelarConsulta(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/paciente/{pacienteId}")
     public ResponseEntity<List<ConsultaDTO>> buscarPorPaciente(@PathVariable Long pacienteId) {
         return ResponseEntity.ok(consultaService.buscarPorPaciente(pacienteId));
