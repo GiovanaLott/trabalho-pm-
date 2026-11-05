@@ -9,7 +9,7 @@ O **Sistema de Informação Hospitalar** é uma aplicação desenvolvida em **Ja
 
 * Cadastro e gestão de **pacientes**;
 * Cadastro e gestão de **profissionais de saúde** (médicos clínicos, especialistas e cirurgiões);
-* Gerenciamento e controle de vagas em **quartos/leitos**;
+* Gerenciamento de **quartos/leitos** por tipo (enfermaria, apartamento, UTI e isolamento), com controle de vagas, manutenção e painel de ocupação;
 * Agendamento, confirmação, atendimento e controle de **consultas ambulatoriais e atendimentos de emergência**;
 * Controle de **internações hospitalares** e altas médicas;
 * Gestão de **procedimentos cirúrgicos**;
@@ -74,20 +74,44 @@ src/main/java/com/hospital/
 * Objetos que isolam a camada de dados da camada de apresentação, evitando acoplamento excessivo.
 
 ### 6. Tratamento de Exceções (`excecoes`)
-* Centralizado com `@RestControllerAdvice` (`GlobalExceptionHandler`), padronizando o payload JSON de resposta em caso de erros.
+* Centralizado com `@RestControllerAdvice` (`GlobalExceptionHandler`), que estende `ResponseEntityExceptionHandler` e devolve sempre o mesmo JSON (`RespostaErro`: `timestamp`, `status`, `error`, `message`, `path` e, em erros de validação, `errors` por campo).
+
+  | Código | Situação |
+  |---|---|
+  | `400` | Regra de negócio violada, campos inválidos, JSON malformado, parâmetro com valor inválido |
+  | `404` | Recurso ou rota inexistente |
+  | `405` | Método HTTP não permitido |
+  | `409` | Choque de horário, quarto lotado ou em manutenção, violação de integridade, conflito de concorrência |
+  | `500` | Erro inesperado (detalhes apenas no log do servidor) |
 
 ---
 
 ## ⚙️ Regras de Negócio do Sistema
 
 1. **Pacientes (`PacienteService`)**:
-   * CPF único no sistema. Campos obrigatórios: Nome, CPF e Data de Nascimento.
+   * Campos obrigatórios: Nome, CPF e Data de Nascimento.
+   * CPF validado pelos dígitos verificadores, aceito com ou sem máscara e sempre gravado como `000.000.000-00` (classe `Cpf`). CPF único no sistema, também na atualização.
+   * Data de nascimento no passado e idade máxima de 130 anos. A idade é calculada e devolvida pela API.
+   * Pacientes com consultas, internações ou cirurgias registradas **não podem ser excluídos** (preservação do histórico).
 
 2. **Profissionais de Saúde (`ProfissionalSaudeService`)**:
    * Registro Profissional (CRM/COREN) único. Campos obrigatórios: Nome, Registro e Especialidade.
 
-3. **Quartos (`QuartoService`)**:
-   * Capacidade máxima de leitos e status (`DISPONIVEL`, `LOTADO`, `MANUTENCAO`).
+3. **Quartos (`QuartoService`) — Herança e Polimorfismo**:
+   * `Quarto` é abstrato; cada tipo é uma subclasse criada pela fábrica `TipoQuarto.novoQuarto()`:
+
+     | Tipo | Classe | Leitos | Regra específica |
+     |---|---|---|---|
+     | `ENFERMARIA` | `Enfermaria` | 2 a 8 | — |
+     | `APARTAMENTO` | `Apartamento` | 1 a 2 | Atributo `permiteAcompanhante` (padrão: sim) |
+     | `UTI` | `UnidadeTerapiaIntensiva` | 1 a 10 | Internação exige justificativa clínica nas observações |
+     | `ISOLAMENTO` | `QuartoIsolamento` | exatamente 1 | Tipo de isolamento obrigatório (`CONTATO`, `GOTICULAS`, `AEROSSOIS`) |
+   * Situação (`StatusQuarto`): `DISPONIVEL` e `OCUPADO` são calculadas automaticamente pela ocupação; `EM_MANUTENCAO` é definida manualmente.
+   * A ocupação nunca ultrapassa a capacidade máxima: o próprio quarto valida a admissão (`registrarAdmissao`, padrão *Template Method*) e lança `QuartoLotadoException`.
+   * Só quartos vazios entram em manutenção; quartos em manutenção não recebem internações.
+   * A capacidade não pode ser reduzida abaixo da ocupação atual nem sair da faixa do tipo.
+   * Número de identificação único. Quartos com internações registradas não podem ser excluídos.
+   * Controle de concorrência otimista (`@Version`): duas internações simultâneas no último leito não ultrapassam a capacidade.
 
 4. **Consultas e Atendimentos (`ConsultaService`)**:
    * Prevenção de choque de horários (janela mínima de 30 minutos por profissional).
@@ -101,12 +125,13 @@ src/main/java/com/hospital/
      * Transições controladas: apenas consultas em atendimento podem ser concluídas; consultas agendadas ou confirmadas podem ser canceladas ou marcadas como não compareceu; consultas finalizadas (`CONCLUIDA`, `CANCELADA`, `NAO_COMPARECEU`) não permitem alteração de status.
 
 5. **Internações (`InternacaoService`)**:
-   * Verificação de vaga disponível no quarto antes de internar.
+   * Verificação de vaga e dos requisitos do tipo de quarto antes de internar (feita pelo próprio `Quarto`).
+   * A data prevista de alta não pode ser anterior à data de entrada.
    * Controle automático de ocupação (incremento na entrada e decremento na alta).
    * Bloqueio de internações simultâneas para o mesmo paciente.
 
 6. **Histórico Médico (`HistoricoMedicoService`)**:
-   * Consolidação de todas as consultas e internações do paciente em um único prontuário.
+   * Consolidação de todas as consultas, internações e procedimentos cirúrgicos do paciente em um único prontuário.
 
 ---
 
@@ -114,8 +139,11 @@ src/main/java/com/hospital/
 
 ### 👤 Pacientes (`/pacientes`)
 * `POST /pacientes` — Cadastrar um novo paciente.
-* `GET /pacientes` — Listar todos os pacientes cadastrados.
+* `GET /pacientes` — Listar todos os pacientes (ordem alfabética). Filtro opcional: `?nome=` (parte do nome).
 * `GET /pacientes/{id}` — Buscar paciente por ID.
+* `GET /pacientes/cpf/{cpf}` — Buscar paciente por CPF (com ou sem máscara).
+* `PUT /pacientes/{id}` — Atualizar os dados do paciente.
+* `DELETE /pacientes/{id}` — Excluir paciente (somente sem histórico).
 
 ### 🩺 Profissionais de Saúde (`/profissionais`)
 * `POST /profissionais` — Cadastrar um novo profissional de saúde.
@@ -123,10 +151,16 @@ src/main/java/com/hospital/
 * `GET /profissionais/{id}` — Buscar profissional por ID.
 
 ### 🚪 Quartos (`/quartos`)
-* `POST /quartos` — Cadastrar um novo quarto hospitalar.
-* `GET /quartos` — Listar todos os quartos.
-* `GET /quartos/disponiveis` — Listar quartos com leitos disponíveis.
+* `POST /quartos` — Cadastrar um novo quarto. Corpo: `numeroIdentificacao`, `andar`, `capacidadeMaxima`, `tipo` (padrão `ENFERMARIA`) e, conforme o tipo, `permiteAcompanhante` ou `tipoIsolamento`.
+* `GET /quartos` — Listar quartos. Filtros opcionais: `?tipo=UTI&andar=2&situacao=DISPONIVEL`.
+* `GET /quartos/disponiveis` — Listar quartos com leitos livres. Filtro opcional: `?tipo=`.
+* `GET /quartos/ocupacao` — Painel de ocupação (leitos totais, ocupados, disponíveis e taxa de ocupação, geral e por tipo).
 * `GET /quartos/{id}` — Buscar quarto por ID.
+* `GET /quartos/{id}/internacoes` — Internações em andamento no quarto (quem ocupa os leitos).
+* `PUT /quartos/{id}` — Atualizar número, andar, capacidade e atributos do tipo.
+* `PUT /quartos/{id}/manutencao` — Colocar o quarto (vazio) em manutenção.
+* `PUT /quartos/{id}/liberar` — Liberar o quarto da manutenção.
+* `DELETE /quartos/{id}` — Excluir quarto (somente se nunca teve internações).
 
 ### 📅 Consultas (`/consultas`)
 * `POST /consultas` — Agendar nova consulta médica (rotina, especializada ou emergência).
@@ -173,7 +207,7 @@ src/main/java/com/hospital/
 
 * **Java 17** (LTS)
 * **Spring Boot 3.2.3** (Spring Web, Spring Data JPA, Spring Validation)
-* **PostgreSQL (Supabase)** (Banco de dados relacional em produção/desenvolvimento)
+* **PostgreSQL (Supabase)** (Banco de dados relacional em produção/desenvolvimento — justificativa da escolha em [`docs/BANCO_DE_DADOS.md`](docs/BANCO_DE_DADOS.md))
 * **H2 Database** (Banco de dados em memória para execução isolada e rápida da suíte de testes)
 * **JUnit 5, Mockito & MockMvc** (Testes unitários de serviços e testes automatizados de integração da API REST)
 * **HTML5 / CSS3 / JavaScript** (Front-end conceitual sem funcionalidade)
@@ -193,16 +227,23 @@ A aplicação está configurada para conectar ao PostgreSQL hospedado no Supabas
 * `DB_URL`: URL JDBC do PostgreSQL (padrão: `jdbc:postgresql://db.shluawyyxdnitwcaagwx.supabase.co:5432/postgres?sslmode=require`)
 * `DB_USERNAME`: Usuário do banco (padrão: `postgres`)
 * `DB_PASSWORD`: Senha do banco definida no Supabase
+> **Banco criado em versões anteriores?** Execute [`docs/sql/ajuste_banco_sprint2.sql`](docs/sql/ajuste_banco_sprint2.sql) no SQL Editor do Supabase (detalhes em [`docs/BANCO_DE_DADOS.md`](docs/BANCO_DE_DADOS.md)).
+
 ### Executar a API e o Front-end
 ```bash
 mvn spring-boot:run
+```
+
+Sem acesso ao Supabase, use o perfil `h2` (banco em memória, zerado a cada execução; console em `http://localhost:8080/h2-console`):
+```bash
+mvn spring-boot:run -Dspring-boot.run.profiles=h2
 ```
 
 * **Front-end**: Acesse `http://localhost:8080/` no navegador.
 * **API REST**: Endpoints disponíveis na porta `8080` (ex: `/pacientes`, `/profissionais`, `/consultas`, `/internacoes`, `/quartos`, `/historico`).
 
 ### Executar os Testes Automatizados (Serviços e API REST)
-Os testes utilizam automaticamente o banco H2 em memória, garantindo execução rápida, idempotente e sem dependência de rede:
+Os testes utilizam automaticamente o banco H2 em memória, garantindo execução rápida, idempotente e sem dependência de rede. A suíte inclui testes unitários (entidades e services, com Mockito), testes de controller (`@WebMvcTest`), testes de repositório (`@DataJpaTest`) e testes de integração da API completa (`HospitalApiIntegrationTest`, com `@SpringBootTest`), que também garantem que a aplicação consegue iniciar:
 ```bash
 mvn test
 ```

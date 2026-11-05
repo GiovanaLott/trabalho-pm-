@@ -46,8 +46,34 @@ classDiagram
     class StatusQuarto {
         <<enumeration>>
         DISPONIVEL
-        LOTADO
-        MANUTENCAO
+        OCUPADO
+        EM_MANUTENCAO
+    }
+
+    class TipoQuarto {
+        <<enumeration>>
+        ENFERMARIA
+        APARTAMENTO
+        UTI
+        ISOLAMENTO
+        -String descricao
+        -int capacidadeMinima
+        -int capacidadeMaxima
+        +novoQuarto() Quarto
+    }
+
+    class TipoIsolamento {
+        <<enumeration>>
+        CONTATO
+        GOTICULAS
+        AEROSSOIS
+    }
+
+    class Cpf {
+        <<utility>>
+        +isValido(String cpf)$ boolean
+        +formatar(String cpf)$ String
+        +somenteDigitos(String cpf)$ String
     }
 
     class Paciente {
@@ -71,6 +97,9 @@ classDiagram
         +setEndereco(String endereco) void
         +getEmail() String
         +setEmail(String email) void
+        +atualizarDados(nome, nascimento, telefone, endereco, email) void
+        +getIdade() Integer
+        +isMenorDeIdade() boolean
     }
 
     class ProfissionalSaude {
@@ -94,19 +123,47 @@ classDiagram
     }
 
     class Quarto {
+        <<abstract>>
         -Long id
-        -String numero
+        -String numeroIdentificacao
+        -Integer andar
         -Integer capacidadeMaxima
         -Integer ocupacaoAtual
-        -StatusQuarto status
-        +getId() Long
-        +getNumero() String
-        +getCapacidadeMaxima() Integer
-        +getOcupacaoAtual() Integer
-        +getStatus() StatusQuarto
+        -StatusQuarto situacao
+        -Long versao
+        +getTipo()* TipoQuarto
+        +validarConfiguracao() void
+        +registrarAdmissao(Internacao internacao) void
+        #validarRequisitosDoTipo(Internacao internacao) void
         +temVagaDisponivel() boolean
         +incrementarOcupacao() void
         +decrementarOcupacao() void
+        +getLeitosDisponiveis() int
+        +colocarEmManutencao() void
+        +liberarDaManutencao() void
+        +alterarCapacidade(Integer nova) void
+    }
+
+    class Enfermaria {
+        +getTipo() TipoQuarto
+    }
+
+    class Apartamento {
+        -Boolean permiteAcompanhante
+        +getTipo() TipoQuarto
+        +getPermiteAcompanhante() Boolean
+    }
+
+    class UnidadeTerapiaIntensiva {
+        +getTipo() TipoQuarto
+        #validarRequisitosDoTipo(Internacao internacao) void
+    }
+
+    class QuartoIsolamento {
+        -TipoIsolamento tipoIsolamento
+        +getTipo() TipoQuarto
+        +validarConfiguracao() void
+        +getTipoIsolamento() TipoIsolamento
     }
 
     class Consulta {
@@ -160,20 +217,23 @@ classDiagram
     class Internacao {
         -Long id
         -Paciente paciente
+        -ProfissionalSaude profissional
         -Quarto quarto
         -LocalDateTime dataEntrada
-        -LocalDateTime dataAlta
+        -LocalDate dataPrevistaAlta
+        -LocalDateTime dataEfetivaAlta
+        -String observacoes
         -StatusInternacao status
-        -String motivo
         +getId() Long
         +getPaciente() Paciente
+        +getProfissional() ProfissionalSaude
         +getQuarto() Quarto
         +getDataEntrada() LocalDateTime
-        +getDataAlta() LocalDateTime
-        +setDataAlta(LocalDateTime dataAlta) void
+        +getDataPrevistaAlta() LocalDate
+        +getDataEfetivaAlta() LocalDateTime
+        +getObservacoes() String
         +getStatus() StatusInternacao
         +setStatus(StatusInternacao status) void
-        +getMotivo() String
     }
 
     Consulta <|-- ConsultaRotina : herda
@@ -183,13 +243,22 @@ classDiagram
     Paciente "1" -- "0..*" Consulta : possui
     ProfissionalSaude "1" -- "0..*" Consulta : realiza
     Paciente "1" -- "0..*" Internacao : internado em
+    ProfissionalSaude "1" -- "0..*" Internacao : responsável
     Quarto "1" -- "0..*" Internacao : aloca
+
+    Quarto <|-- Enfermaria : herda
+    Quarto <|-- Apartamento : herda
+    Quarto <|-- UnidadeTerapiaIntensiva : herda
+    Quarto <|-- QuartoIsolamento : herda
 
     Consulta --> SituacaoConsulta
     Consulta --> ModalidadeAtendimento
     AtendimentoEmergencia --> PrioridadeAtendimento
     Internacao --> StatusInternacao
     Quarto --> StatusQuarto
+    Quarto --> TipoQuarto
+    QuartoIsolamento --> TipoIsolamento
+    Paciente ..> Cpf : CPF validado por
 ```
 
 ---
@@ -230,8 +299,31 @@ enum StatusInternacao {
 
 enum StatusQuarto {
   DISPONIVEL
-  LOTADO
-  MANUTENCAO
+  OCUPADO
+  EM_MANUTENCAO
+}
+
+enum TipoQuarto {
+  ENFERMARIA
+  APARTAMENTO
+  UTI
+  ISOLAMENTO
+  - descricao: String
+  - capacidadeMinima: int
+  - capacidadeMaxima: int
+  + novoQuarto(): Quarto
+}
+
+enum TipoIsolamento {
+  CONTATO
+  GOTICULAS
+  AEROSSOIS
+}
+
+class Cpf <<utility>> {
+  + {static} isValido(cpf: String): boolean
+  + {static} formatar(cpf: String): String
+  + {static} somenteDigitos(cpf: String): String
 }
 
 class Paciente {
@@ -255,6 +347,9 @@ class Paciente {
   + setEndereco(endereco: String): void
   + getEmail(): String
   + setEmail(email: String): void
+  + atualizarDados(nome: String, nascimento: LocalDate, telefone: String, endereco: String, email: String): void
+  + getIdade(): Integer
+  + isMenorDeIdade(): boolean
 }
 
 class ProfissionalSaude {
@@ -277,20 +372,47 @@ class ProfissionalSaude {
   + setEmail(email: String): void
 }
 
-class Quarto {
+abstract class Quarto {
   - id: Long
-  - numero: String
+  - numeroIdentificacao: String
+  - andar: Integer
   - capacidadeMaxima: Integer
   - ocupacaoAtual: Integer
-  - status: StatusQuarto
-  + getId(): Long
-  + getNumero(): String
-  + getCapacidadeMaxima(): Integer
-  + getOcupacaoAtual(): Integer
-  + getStatus(): StatusQuarto
+  - situacao: StatusQuarto
+  - versao: Long
+  + {abstract} getTipo(): TipoQuarto
+  + validarConfiguracao(): void
+  + registrarAdmissao(internacao: Internacao): void
+  # validarRequisitosDoTipo(internacao: Internacao): void
   + temVagaDisponivel(): boolean
   + incrementarOcupacao(): void
   + decrementarOcupacao(): void
+  + getLeitosDisponiveis(): int
+  + colocarEmManutencao(): void
+  + liberarDaManutencao(): void
+  + alterarCapacidade(nova: Integer): void
+}
+
+class Enfermaria {
+  + getTipo(): TipoQuarto
+}
+
+class Apartamento {
+  - permiteAcompanhante: Boolean
+  + getTipo(): TipoQuarto
+  + getPermiteAcompanhante(): Boolean
+}
+
+class UnidadeTerapiaIntensiva {
+  + getTipo(): TipoQuarto
+  # validarRequisitosDoTipo(internacao: Internacao): void
+}
+
+class QuartoIsolamento {
+  - tipoIsolamento: TipoIsolamento
+  + getTipo(): TipoQuarto
+  + validarConfiguracao(): void
+  + getTipoIsolamento(): TipoIsolamento
 }
 
 abstract class Consulta {
@@ -343,20 +465,23 @@ class AtendimentoEmergencia {
 class Internacao {
   - id: Long
   - paciente: Paciente
+  - profissional: ProfissionalSaude
   - quarto: Quarto
   - dataEntrada: LocalDateTime
-  - dataAlta: LocalDateTime
+  - dataPrevistaAlta: LocalDate
+  - dataEfetivaAlta: LocalDateTime
+  - observacoes: String
   - status: StatusInternacao
-  - motivo: String
   + getId(): Long
   + getPaciente(): Paciente
+  + getProfissional(): ProfissionalSaude
   + getQuarto(): Quarto
   + getDataEntrada(): LocalDateTime
-  + getDataAlta(): LocalDateTime
-  + setDataAlta(data: LocalDateTime): void
+  + getDataPrevistaAlta(): LocalDate
+  + getDataEfetivaAlta(): LocalDateTime
+  + getObservacoes(): String
   + getStatus(): StatusInternacao
   + setStatus(status: StatusInternacao): void
-  + getMotivo(): String
 }
 
 Consulta <|-- ConsultaRotina
@@ -366,13 +491,22 @@ Consulta <|-- AtendimentoEmergencia
 Paciente "1" -- "0..*" Consulta : possui >
 ProfissionalSaude "1" -- "0..*" Consulta : realiza >
 Paciente "1" -- "0..*" Internacao : internado em >
+ProfissionalSaude "1" -- "0..*" Internacao : responsável >
 Quarto "1" -- "0..*" Internacao : aloca >
+
+Quarto <|-- Enfermaria
+Quarto <|-- Apartamento
+Quarto <|-- UnidadeTerapiaIntensiva
+Quarto <|-- QuartoIsolamento
 
 Consulta --> SituacaoConsulta
 Consulta --> ModalidadeAtendimento
 AtendimentoEmergencia --> PrioridadeAtendimento
 Internacao --> StatusInternacao
 Quarto --> StatusQuarto
+Quarto --> TipoQuarto
+QuartoIsolamento --> TipoIsolamento
+Paciente ..> Cpf : CPF validado por
 
 @enduml
 ```
@@ -399,4 +533,10 @@ Quarto --> StatusQuarto
 
 5. **Quarto — Internacao (1 para 0..*)**:
    * Um `Quarto` pode receber múltiplas internações ao longo de sua vida útil, respeitando a capacidade máxima simultânea (`ocupacaoAtual <= capacidadeMaxima`).
-   * Cada `Internacao` está associada a exatamente 1 quarto.
+   * Cada `Internacao` está associada a exatamente 1 quarto e a 1 profissional responsável.
+
+6. **Herança dos Tipos de Quarto**:
+   * `Quarto` é a classe base abstrata; `Enfermaria` (2 a 8 leitos), `Apartamento` (1 a 2, com `permiteAcompanhante`), `UnidadeTerapiaIntensiva` (1 a 10) e `QuartoIsolamento` (1 leito, com `TipoIsolamento`) a estendem.
+   * `registrarAdmissao()` segue o padrão *Template Method*: a classe base verifica manutenção e vagas, e cada subclasse pode acrescentar requisitos em `validarRequisitosDoTipo()` (a UTI exige justificativa clínica).
+   * `validarConfiguracao()` é polimórfico: a base valida a faixa de capacidade do tipo e `QuartoIsolamento` exige também o tipo de isolamento.
+   * O enum `TipoQuarto` funciona como fábrica (`novoQuarto()`), usada pelo `QuartoService` para instanciar a subclasse correta a partir do tipo recebido na API.
