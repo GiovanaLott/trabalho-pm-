@@ -1,9 +1,13 @@
 package com.hospital.dtos;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.hospital.entidades.Paciente;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Past;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
 
 public class PacienteDTO {
@@ -11,19 +15,29 @@ public class PacienteDTO {
     private Long id;
 
     @NotBlank(message = "O nome é obrigatório")
+    @Size(max = 100, message = "O nome deve ter no máximo 100 caracteres")
     private String nome;
 
     @NotBlank(message = "O CPF é obrigatório")
     private String cpf;
 
     @NotNull(message = "A data de nascimento é obrigatória")
+    @Past(message = "A data de nascimento deve estar no passado")
     private LocalDate dataNascimento;
 
+    @Pattern(regexp = "^[0-9()+\\-\\s]{8,20}$", message = "Telefone inválido (use apenas números, espaços, parênteses, + e -)")
     private String telefone;
+
+    @Size(max = 255, message = "O endereço deve ter no máximo 255 caracteres")
     private String endereco;
 
     @Email(message = "E-mail inválido")
+    @Size(max = 100, message = "O e-mail deve ter no máximo 100 caracteres")
     private String email;
+
+    /** Calculada a partir da data de nascimento; ignorada quando enviada pelo cliente. */
+    @JsonProperty(access = JsonProperty.Access.READ_ONLY)
+    private Integer idade;
 
     public PacienteDTO() {
     }
@@ -37,6 +51,7 @@ public class PacienteDTO {
         this.endereco = endereco;
         this.email = email;
     }
+
     public PacienteDTO(Paciente paciente) {
         if (paciente != null) {
             this.id = paciente.getId();
@@ -46,6 +61,7 @@ public class PacienteDTO {
             this.telefone = paciente.getTelefone();
             this.endereco = paciente.getEndereco();
             this.email = paciente.getEmail();
+            this.idade = paciente.getIdade();
         }
     }
 
@@ -103,5 +119,9 @@ public class PacienteDTO {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public Integer getIdade() {
+        return idade;
     }
 }

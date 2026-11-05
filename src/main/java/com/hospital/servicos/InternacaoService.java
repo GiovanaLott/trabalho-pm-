@@ -3,7 +3,6 @@ package com.hospital.servicos;
 import com.hospital.dtos.InternacaoDTO;
 import com.hospital.dtos.InternacaoRequestDTO;
 import com.hospital.entidades.*;
-import com.hospital.excecoes.QuartoLotadoException;
 import com.hospital.excecoes.RecursoNaoEncontradoException;
 import com.hospital.excecoes.RegraNegocioException;
 import com.hospital.repositorios.InternacaoRepository;
@@ -50,13 +49,6 @@ public class InternacaoService {
             throw new RegraNegocioException("O paciente " + paciente.getNome() + " já possui uma internação em andamento.");
         }
 
-        if (!quarto.temVagaDisponivel() || quarto.getOcupacaoAtual() >= quarto.getCapacidadeMaxima()) {
-            throw new QuartoLotadoException("O quarto " + quarto.getNumeroIdentificacao() + " não está disponível ou atingiu sua capacidade máxima (" + quarto.getCapacidadeMaxima() + " leitos).");
-        }
-
-        quarto.incrementarOcupacao();
-        quartoRepository.save(quarto);
-
         Internacao internacao = new Internacao();
         internacao.setPaciente(paciente);
         internacao.setProfissional(profissional);
@@ -65,6 +57,16 @@ public class InternacaoService {
         internacao.setDataPrevistaAlta(dto.getDataPrevistaAlta());
         internacao.setObservacoes(dto.getObservacoes());
         internacao.setStatus(StatusInternacao.EM_ANDAMENTO);
+
+        if (internacao.getDataPrevistaAlta() != null
+                && internacao.getDataPrevistaAlta().isBefore(internacao.getDataEntrada().toLocalDate())) {
+            throw new RegraNegocioException("A data prevista de alta não pode ser anterior à data de entrada.");
+        }
+
+        // O próprio quarto verifica manutenção, vagas e os requisitos do seu tipo (ex.: UTI exige justificativa)
+        // e ocupa o leito; lança QuartoLotadoException se não houver vaga.
+        quarto.registrarAdmissao(internacao);
+        quartoRepository.save(quarto);
 
         Internacao salva = internacaoRepository.save(internacao);
         return new InternacaoDTO(salva);

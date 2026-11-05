@@ -25,13 +25,32 @@ public class PacienteController {
         return ResponseEntity.status(HttpStatus.CREATED).body(pacienteSalvo);
     }
 
+    /** Lista todos os pacientes em ordem alfabética, ou filtra por parte do nome ({@code ?nome=}). */
     @GetMapping
-    public ResponseEntity<List<PacienteDTO>> listarTodos() {
-        return ResponseEntity.ok(pacienteService.listarTodos());
+    public ResponseEntity<List<PacienteDTO>> listar(@RequestParam(required = false) String nome) {
+        return ResponseEntity.ok(pacienteService.buscarPorNome(nome));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<PacienteDTO> buscarPorId(@PathVariable Long id) {
         return ResponseEntity.ok(pacienteService.buscarPorId(id));
+    }
+
+    /** Aceita o CPF com ou sem máscara (ex.: 52998224725 ou 529.982.247-25). */
+    @GetMapping("/cpf/{cpf}")
+    public ResponseEntity<PacienteDTO> buscarPorCpf(@PathVariable String cpf) {
+        return ResponseEntity.ok(pacienteService.buscarPorCpf(cpf));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<PacienteDTO> atualizar(@PathVariable Long id, @Valid @RequestBody PacienteDTO dto) {
+        return ResponseEntity.ok(pacienteService.atualizar(id, dto));
+    }
+
+    /** Só é permitido para pacientes sem histórico (consultas, internações ou cirurgias). */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> excluir(@PathVariable Long id) {
+        pacienteService.excluir(id);
+        return ResponseEntity.noContent().build();
     }
 }

@@ -1,0 +1,18 @@
+# Normaliza as quebras de linha: o repositório guarda LF e cada máquina recebe o padrão
+# do seu sistema (CRLF no Windows). Evita commits em que todas as linhas aparecem alteradas.
+* text=auto
+
+*.java       text
+*.properties text
+*.xml        text
+*.md         text
+*.sql        text
+*.html       text
+*.css        text
+*.js         text
+
+*.pdf        binary
+*.jpeg       binary
+*.jpg        binary
+*.png        binary
+docs/EntityStore binary

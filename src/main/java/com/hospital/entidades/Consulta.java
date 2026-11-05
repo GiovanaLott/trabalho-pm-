@@ -9,8 +9,7 @@ import java.util.Objects;
 @Table(name = "consultas")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "modalidade", discriminatorType = DiscriminatorType.STRING)
-@DiscriminatorValue("ROTINA")
-public class Consulta {
+public abstract class Consulta {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -37,7 +36,7 @@ public class Consulta {
     @Column(name = "situacao", nullable = false, length = 30)
     private SituacaoConsulta situacao = SituacaoConsulta.AGENDADA;
 
-    public Consulta() {
+    protected Consulta() {
     }
 
     public Consulta(Long id, Paciente paciente, ProfissionalSaude profissional, LocalDateTime dataHora,

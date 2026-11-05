@@ -15,4 +15,6 @@ public interface ProcedimentoCirurgicoRepository extends JpaRepository<Procedime
     List<ProcedimentoCirurgico> findByCirurgiaoId(Long cirurgiaoId);
 
     List<ProcedimentoCirurgico> findBySituacao(StatusCirurgia situacao);
+
+    boolean existsByPacienteId(Long pacienteId);
 }

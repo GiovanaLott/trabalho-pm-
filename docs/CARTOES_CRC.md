@@ -9,11 +9,26 @@ Curso de Engenharia de Software — PUC Minas
 
 ### Responsabilidades
 1. Conhecer as informações cadastrais do paciente (nome, CPF, data de nascimento, telefone, endereço e e-mail).
-2. Fornecer identificação unívoca do paciente no sistema.
+2. Fornecer identificação unívoca do paciente no sistema (CPF único).
+3. Atualizar seus dados cadastrais.
+4. Calcular a própria idade e informar se é menor de idade.
 
 ### Colaborações
+* Cpf
 * Consulta
 * Internacao
+* ProcedimentoCirurgico
+
+---
+
+**Cpf**
+
+### Responsabilidades
+1. Validar um CPF pelos dígitos verificadores, rejeitando sequências repetidas e tamanhos incorretos.
+2. Padronizar o CPF no formato 000.000.000-00, aceitando entrada com ou sem máscara.
+
+### Colaborações
+* PacienteService
 
 ---
 
@@ -28,17 +43,82 @@ Curso de Engenharia de Software — PUC Minas
 
 ---
 
-**Quarto**
+**Quarto** *(abstrata)*
 
 ### Responsabilidades
-1. Conhecer os dados estruturais do quarto (número/identificador, capacidade máxima de leitos, ocupação atual e status).
-2. Avaliar se possui leito vago disponível para nova internação.
-3. Incrementar a ocupação atual quando uma internação for realizada.
-4. Decrementar a ocupação atual quando um paciente receber alta médica.
+1. Conhecer os dados estruturais do quarto (número de identificação, andar, capacidade máxima, ocupação atual e situação).
+2. Conhecer o seu tipo (definido por cada subclasse).
+3. Validar a própria configuração, incluindo a faixa de leitos permitida para o tipo.
+4. Registrar a admissão de uma internação: verificar manutenção, vagas e requisitos do tipo, e ocupar um leito sem ultrapassar a capacidade máxima.
+5. Liberar um leito na alta ou no cancelamento da internação.
+6. Manter a situação atualizada (disponível/ocupado) e controlar a entrada e saída de manutenção (somente quando vazio).
+7. Impedir a redução da capacidade abaixo da ocupação atual.
 
 ### Colaborações
+* TipoQuarto
 * StatusQuarto
 * Internacao
+
+---
+
+**Enfermaria**
+
+### Responsabilidades
+1. Representar quartos coletivos, com 2 a 8 leitos.
+
+### Colaborações
+* Quarto
+* TipoQuarto
+
+---
+
+**Apartamento**
+
+### Responsabilidades
+1. Representar quartos privativos, com 1 a 2 leitos.
+2. Informar se permite acompanhante.
+
+### Colaborações
+* Quarto
+* TipoQuarto
+
+---
+
+**UnidadeTerapiaIntensiva**
+
+### Responsabilidades
+1. Representar leitos de terapia intensiva (1 a 10 leitos).
+2. Exigir justificativa clínica nas observações para aceitar uma internação.
+
+### Colaborações
+* Quarto
+* Internacao
+
+---
+
+**QuartoIsolamento**
+
+### Responsabilidades
+1. Representar quartos individuais de isolamento (exatamente 1 leito).
+2. Conhecer e exigir o tipo de precaução (contato, gotículas ou aerossóis).
+
+### Colaborações
+* Quarto
+* TipoIsolamento
+
+---
+
+**TipoQuarto**
+
+### Responsabilidades
+1. Enumerar os tipos de quarto e conhecer a faixa de leitos permitida para cada um.
+2. Criar a subclasse de quarto correspondente ao tipo (fábrica).
+
+### Colaborações
+* Enfermaria
+* Apartamento
+* UnidadeTerapiaIntensiva
+* QuartoIsolamento
 
 ---
 
@@ -120,19 +200,21 @@ Curso de Engenharia de Software — PUC Minas
 ### Responsabilidades
 1. Consolidar em um único prontuário todas as consultas realizadas e agendadas de um determinado paciente.
 2. Consolidar todas as internações registradas no histórico do paciente.
-3. Fornecer uma visão unificada da ficha médica e do paciente.
+3. Consolidar os procedimentos cirúrgicos do paciente.
+4. Fornecer uma visão unificada da ficha médica e do paciente.
 
 ### Colaborações
 * Paciente
 * Consulta
 * Internacao
+* ProcedimentoCirurgico
 
 ---
 
 **PacienteController**
 
 ### Responsabilidades
-1. Receber e processar requisições HTTP REST relacionadas a pacientes (`/pacientes`).
+1. Receber e processar requisições HTTP REST relacionadas a pacientes (`/pacientes`): cadastro, listagem (com filtro por nome), busca por ID e por CPF, atualização e exclusão.
 2. Disparar a validação estrutural dos dados de entrada do paciente.
 3. Delegar as operações de persistência e consulta para a camada de serviço de pacientes.
 4. Retornar os códigos de status HTTP e os dados dos pacientes transferidos via DTO.
@@ -168,3 +250,53 @@ Curso de Engenharia de Software — PUC Minas
 * ConsultaService
 * ConsultaDTO
 * ConsultaRequestDTO
+
+---
+
+**PacienteService**
+
+### Responsabilidades
+1. Validar e padronizar o CPF e garantir que ele seja único (no cadastro e na atualização).
+2. Validar a data de nascimento (no passado e com idade plausível).
+3. Cadastrar, atualizar, listar e buscar pacientes.
+4. Impedir a exclusão de pacientes com consultas, internações ou cirurgias, preservando o histórico.
+
+### Colaborações
+* Paciente
+* Cpf
+* PacienteRepository
+* ConsultaRepository
+* InternacaoRepository
+* ProcedimentoCirurgicoRepository
+
+---
+
+**QuartoController**
+
+### Responsabilidades
+1. Receber requisições REST relacionadas a quartos (`/quartos`): cadastro, listagem com filtros (tipo, andar, situação), quartos disponíveis, painel de ocupação, atualização, manutenção e exclusão.
+2. Disparar a validação estrutural dos dados de entrada.
+3. Delegar as operações ao serviço de quartos e responder com os status HTTP adequados.
+
+### Colaborações
+* QuartoService
+* QuartoDTO
+* QuartoUpdateDTO
+* OcupacaoHospitalarDTO
+
+---
+
+**QuartoService**
+
+### Responsabilidades
+1. Criar o quarto do tipo solicitado e garantir número de identificação único.
+2. Listar e filtrar quartos e calcular o painel de ocupação (geral e por tipo).
+3. Atualizar dados do quarto respeitando a ocupação atual e a faixa do tipo.
+4. Colocar e retirar quartos de manutenção.
+5. Impedir a exclusão de quartos que já tiveram internações.
+
+### Colaborações
+* Quarto
+* TipoQuarto
+* QuartoRepository
+* InternacaoRepository

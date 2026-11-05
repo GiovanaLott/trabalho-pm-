@@ -6,6 +6,7 @@ import com.hospital.excecoes.RecursoNaoEncontradoException;
 import com.hospital.repositorios.ConsultaRepository;
 import com.hospital.repositorios.InternacaoRepository;
 import com.hospital.repositorios.PacienteRepository;
+import com.hospital.repositorios.ProcedimentoCirurgicoRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -33,6 +34,9 @@ class HistoricoMedicoServiceTest {
     @Mock
     private InternacaoRepository internacaoRepository;
 
+    @Mock
+    private ProcedimentoCirurgicoRepository procedimentoRepository;
+
     @InjectMocks
     private HistoricoMedicoService historicoMedicoService;
 
@@ -44,9 +48,9 @@ class HistoricoMedicoServiceTest {
     void setUp() {
         paciente = new Paciente(1L, "João Silva", "123.456.789-00", LocalDate.of(1990, 5, 20), "31999998888", "Rua A", "joao@email.com");
         ProfissionalSaude profissional = new ProfissionalSaude(1L, "Dra. Maria", "CRM12345", "Cardiologia", "31988887777", "maria@hospital.com");
-        Quarto quarto = new Quarto(1L, "101-A", 1, 2, 1, StatusQuarto.DISPONIVEL);
+        Quarto quarto = new Enfermaria(1L, "101-A", 1, 2, 1, StatusQuarto.DISPONIVEL);
 
-        consulta = new Consulta(10L, paciente, profissional, LocalDateTime.now().minusDays(10), "Check-up", "Sem observações", StatusConsulta.REALIZADA);
+        consulta = new ConsultaRotina(10L, paciente, profissional, LocalDateTime.now().minusDays(10), "Check-up", "Sem observações", SituacaoConsulta.CONCLUIDA);
         internacao = new Internacao(20L, paciente, profissional, quarto, LocalDateTime.now().minusDays(5), LocalDate.now(), null, "Observações gerais", StatusInternacao.EM_ANDAMENTO);
     }
 

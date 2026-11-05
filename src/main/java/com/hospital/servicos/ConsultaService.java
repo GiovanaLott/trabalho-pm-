@@ -182,7 +182,7 @@ public class ConsultaService {
         LocalDateTime fimJanela = dataHora.plusMinutes(29);
 
         List<Consulta> conflitos = consultaRepository.findConflitoHorarioProfissional(
-                profissionalId, inicioJanela, fimJanela, StatusConsulta.CANCELADA);
+                profissionalId, inicioJanela, fimJanela);
 
         if (!conflitos.isEmpty()) {
             throw new ChoqueHorarioException(

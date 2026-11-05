@@ -15,5 +15,11 @@ public interface QuartoRepository extends JpaRepository<Quarto, Long> {
 
     boolean existsByNumeroIdentificacao(String numeroIdentificacao);
 
+    /** Usado na atualização: existe outro quarto (id diferente) com este número? */
+    boolean existsByNumeroIdentificacaoAndIdNot(String numeroIdentificacao, Long id);
+
     List<Quarto> findBySituacao(StatusQuarto situacao);
+
+    List<Quarto> findAllByOrderByAndarAscNumeroIdentificacaoAsc();
+
 }
